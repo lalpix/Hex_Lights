@@ -8,7 +8,7 @@
 #include "Arduino.h"
 
 const char* WIFI_SSID = "KT-NET"; // The SSID (name) of the Wi-Fi network you want to connect to
-const char* WIFI_PASSWORD = "KTx32a_b7"; // The password of the Wi-Fi network
+const char* WIFI_PASSWORD = "PASSWORD"; // The password of the Wi-Fi network
 //const char* auth = ""; /The Blynk Authorization Token
 
 //---my
