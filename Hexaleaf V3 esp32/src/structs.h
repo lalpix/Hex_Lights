@@ -33,13 +33,12 @@ enum FillMode{
 enum Mode{
   Stationar,//all hex same color
   Rotation, //all hex rotating
-  PresetAnim,
   RotationOuter,
+  StationarOuter,
+  PresetAnim,
   RandColorRandHex,
   RainbowSwipeVert,
   RainbowSwipeHorz,
-  StationarOuter,
-  RainbowOuter,
   Mode_num
 };
 

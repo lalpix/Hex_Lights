@@ -1,20 +1,21 @@
 #include <stdint.h>
 #include <stdlib.h>
-#include "FastLED.h"
+#include <FastLED.h>
 #include "structs.h"
 /* Number of LEDs in each box/leaf */
 #define LEDS_IN_BOX 30
 /*The number of boxes */
-#define NUM_BOXES 7
+#define NUM_BOXES 2
 /*The pin the LED is connected to */
-#define LED_PIN 4
+#define LED_PIN 16
 /*Don't change unless you know what you're doing */
 #define TOTAL_LEDS LEDS_IN_BOX *NUM_BOXES
 
 #define LED_IN_SIDE LEDS_IN_BOX/6
 
 #define BOX_LED_NUM_HEIGHT  2*(LED_IN_SIDE+1) 
-#define MAX_VERT_LVL 65+1
+
+#define MAX_VERT_LVL 65+1 //HARDWIRED
 #define MAX_HORZ_LVL 35+1
 /*TODO-- 
 rand hex, fading in and out. and make rand hex with color scheme
@@ -25,13 +26,11 @@ make preset speed for all modes
 CRGB leds[TOTAL_LEDS];
 CRGB vert_leds[MAX_VERT_LVL];
 CRGB horz_leds[MAX_HORZ_LVL];
-CRGB *outer_leds;
 uint16_t outer_led_adr[TOTAL_LEDS];
-uint16_t outer_led_num;
+int outer_led_num;
 //first-x(left/right), second-y(up/down)
-int8_t position[NUM_BOXES][2]={{0,0},{1,1},{2,0},{3,1},{3,3},{4,4},{5,3}};
+int8_t position[NUM_BOXES][2] = {{0, 0}, {-1,-1}}; //,{2,0},{3,1},{3,3},{4,4},{5,3}};
 uint8_t points_of_contact[NUM_BOXES][6];//nth bit will tell if nth side is in contact
-//fuckin chicken didnt do it all the way, not calculating outer sequnce :() - fixed to my setup 
 //uint8_t outer_sequence[][2]={{0,15},{35,50},{70,75},{95,100},{120,135},{155,170},{190,210},{180,185},{175,180},{140,145},{105,120},{80,90},{60,65},{55,60},{20,30}};
 
 FillMode preset1[]={Fill_by_lines_fLeft,Fill_by_lines_fRight}; //left-right
@@ -91,12 +90,9 @@ class Hexnode
     }
     void fill_hex(CRGB clr){
       for(int i = ledStart;i<(ledStart+LEDS_IN_BOX);i++){
-            leds[i] = clr;
+        leds[i] = clr;
         }
       color=clr;
-    }
-    void update(uint8_t fract){
-
     }
     void fill_one_led(CRGB clr,uint8_t n){
       if(n<LEDS_IN_BOX)
@@ -160,38 +156,39 @@ class Hex_controller{
   public:
     Hex_controller():
       clr_arr{(CRGB::Blue),(CRGB::Lime),(CRGB::Pink),(CRGB::DarkKhaki)},
-      fade(true),
-      rainbow(1),
+      fade(false),
+      rainbow(0),
       brightness(200),
       mode(Stationar),
       change(true),  
       lastDrew(0),
       fill_done(true),
       fill_mode(Fill_by_lines_fTop),
-      drawEveryNthMs(100),
-      mySerial(NULL)
-    { 
-      //calculate_outer_leds();
-      //create_outer_path();  
+      drawEveryNthMs(200),
+      mySerial(0)
+    {   
       step=1;
       step_count=0;
 
-      FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, TOTAL_LEDS);
+      FastLED.addLeds<WS2811, LED_PIN, GRB>(leds, TOTAL_LEDS);
       for (uint8_t i = 0; i < NUM_BOXES; i++)
-          nodes[i] = new Hexnode(i);
+                nodes[i] = new Hexnode(i);
     }
     //debug func
-    
-    void test(){
+    void show(){
+      FastLED.show();
+    }
+    void init(){
       calculate_outer_leds();
       create_outer_path();
+      //calc
     }
     void calculate_outer_leds(){
       int num_of_contact_points=0;
       int direc_arr[6][2]={{-1,-1},{-1,1},{0,2},{1,1},{1,-1},{0,-2}};
       for(int i=0;i<NUM_BOXES;i++){
-        mySerial.print("box num: ");
-        mySerial.println(i);
+        //mySerial.print("box num: ");
+        //mySerial.println(i);
         int x=position[i][0];
         int y=position[i][1];
         for(int k=0;k<6;k++){
@@ -199,20 +196,18 @@ class Hex_controller{
           int m = (y+direc_arr[k][1]);
           for(int q=0;q<NUM_BOXES;q++){
             if(position[q][0]==n && position[q][1]==m && q!=i){
-              mySerial.print("has contact at side: ");
-              mySerial.print(k);
-              mySerial.print(" with box num: ");
-              mySerial.println(q);
+              //mySerial.print("has contact at side: ");
+              //mySerial.print(k);
+              //mySerial.print(" with box num: ");
+              //mySerial.println(q);
               points_of_contact[i][k]=q+1; //+1 so 0 is no contant point
               num_of_contact_points++;
             }
           }
         }
       }
-      
       outer_led_num=TOTAL_LEDS-(num_of_contact_points*LED_IN_SIDE);
-      outer_leds = (CRGB*) malloc(sizeof(CRGB)*outer_led_num);
-      mySerial.println(outer_led_num);
+
     }
     void create_outer_path(){//NOT FOR ALL SETUPS  
       uint16_t led_count_1=0;
@@ -223,9 +218,9 @@ class Hex_controller{
       uint8_t end_2 =0;
       for(int i=0;i<NUM_BOXES;i++){
         start_1=nodes[i]->side_start_led(0);
-        end_1 =nodes[i]->side_start_led(0) +30;
+        end_1 =nodes[i]->side_start_led(0) +LEDS_IN_BOX;
         start_2=nodes[i]->side_start_led(0);
-        end_2 =nodes[i]->side_start_led(0) +30;
+        end_2 =nodes[i]->side_start_led(0) +LEDS_IN_BOX;
         for(int j=0;j<6;j++){
           if(points_of_contact[i][j]!=0){
             if(points_of_contact[i][j]>i){//its contanct with next box
@@ -237,7 +232,6 @@ class Hex_controller{
             }
           }  
         }
-        
         for(int a=start_1;a<end_1;a++){
           outer_led_adr[led_count_1]=a;
           led_count_1++;
@@ -251,18 +245,17 @@ class Hex_controller{
           uint16_t end_22 = end_2;
           uint16_t start_22= start_2-(start_2%30);
           end_2 = start_22+30;
+          for(int a=end_2;a>start_2;a--){
+            outer_led_adr[(outer_led_num-1)- led_count_2]=a-1;
+            led_count_2++;
+          }
           for(int a=end_22;a>start_22;a--){
             outer_led_adr[(outer_led_num-1)- led_count_2]=a-1;
             led_count_2++;
           }
-          for(int a=end_2;a>start_2;a--){
-            outer_led_adr[(outer_led_num-1)- led_count_2]=a-1;
-            led_count_2++;
-          } 
         }
       }
     }
-    
     //basic fill functions
     void fill_leds_on_Vert_lvl(uint8_t lvl,CRGB clr){
       for (uint8_t i = 0; i < NUM_BOXES; i++){
@@ -285,10 +278,10 @@ class Hex_controller{
       }
     }
     void fill_all_hex(CRGB clr){
-      mySerial.print("filling hex with clr: ");
+      //mySerial.print("filling all hex with clr: ");
       printCRGB(clr);
-      for(int i = 0;i<NUM_BOXES;i++){
-        nodes[i]->fill_hex(clr);
+      for(int i = 0;i<TOTAL_LEDS;i++){
+        leds[i] = clr;
       }
     }
     void fill_one_led_all_hex(CRGB clr,uint8_t n){
@@ -328,28 +321,13 @@ class Hex_controller{
       if(r==1){
         rainbow = rgb2hsv_approximate(clr_arr[0]).h;
       }else{rainbow=0;}
-      mySerial.print("rainbow is now: ");
-      mySerial.println(rainbow);
+      //mySerial.print("rainbow is now: ");
+      //mySerial.println(rainbow);
     }
     void pause_play(bool f){
       change = f ? true : false;
     }
-  
     //internal functions
-    void my_fill_rainbow(CRGB *myLeds,uint16_t num,uint8_t initial_hue){
-      float _step=(float)255/(float)num;//255 is max hue
-      int h=0;
-      mySerial.print("step is ");
-      mySerial.print(_step);
-      mySerial.print(" hue is ");
-      for(int i = 0;i<num;i++){
-        h=((int)(initial_hue+(i*_step)))%255;
-        mySerial.print(h);
-         mySerial.print(" ");
-        myLeds[i].setHue(h);
-      }
-    }
-
     void change_mode(int m){
       fill_mode = Not_fill_mode;
       fill_done = true;
@@ -359,9 +337,10 @@ class Hex_controller{
       step_count=0;
       step=1;
       }
+
     void change_fill_mode(FillMode new_fill_mode){
-      mySerial.print("changing fill mode to: ");
-      mySerial.println(new_fill_mode);
+      //mySerial.print("changing fill mode to: ");
+      //mySerial.println(new_fill_mode);
       fill_mode = new_fill_mode;
       fill_done = false;
       lastDrew = 0;
@@ -392,25 +371,26 @@ class Hex_controller{
             drawEveryNthMs = 1000;
           break;  
       }
-      mySerial.print("step count is: ");
-      mySerial.println(step_count);
-      mySerial.print("step is: ");
-      mySerial.println(step);
+      //mySerial.print("step count is: ");
+      //mySerial.println(step_count);
+      //mySerial.print("step is: ");
+      //mySerial.println(step);
     }
     void printCRGB(CRGB clr){
-      mySerial.print("R: ");
-      mySerial.print(clr.r,HEX);
-      mySerial.print(" G: ");
-      mySerial.print(clr.g,HEX);
-      mySerial.print(" B: ");
-      mySerial.println(clr.blue,HEX);
+      //mySerial.print("R: ");
+      //mySerial.print(clr.r,HEX);
+      //mySerial.print(" G: ");
+      //mySerial.print(clr.g,HEX);
+      //mySerial.print(" B: ");
+      //mySerial.println(clr.blue,HEX);
     }
     
     void update(){
       if(millis() > (lastDrew + drawEveryNthMs) && change){
+        //mySerial.print("updating now: ");
         if(rainbow>0){
-          mySerial.print("rainbow hue is: ");
-          mySerial.println(rainbow);
+          //mySerial.print("rainbow hue is: ");
+          //mySerial.println(rainbow);
           clr_arr[0].setHue(rainbow);
           printCRGB(clr_arr[0]);
           rainbow++;
@@ -419,7 +399,7 @@ class Hex_controller{
         }
         switch(mode){
           case Stationar:{
-            mySerial.println("stationar");
+            //mySerial.println("stationar");
             fill_all_hex(clr_arr[0]);
             //change = false;
             break;  }
@@ -428,28 +408,29 @@ class Hex_controller{
               for(int j=0;j<6;j++){
                 if (!(points_of_contact[i][j])){//negated
                 nodes[i]->fill_side(clr_arr[0],j);
-                mySerial.print("Set side: ");
-                mySerial.print(j);
-                mySerial.print(" in box ");
-                mySerial.println(i);
+                //mySerial.print("Set side: ");
+                //mySerial.print(j);
+                //mySerial.print(" in box ");
+                //mySerial.println(i);
                 }
               }
             }
           break;}
           case Rotation:{
-            mySerial.println("rotate");
+            //mySerial.println("rotate");
             for(int i=0;i<NUM_BOXES;i++){
               if(!fade){
-                fill_same_dir_sides(clr_arr[0],step_count+1);
-                fill_same_dir_sides(CRGB::Black,step_count);
+                fill_one_led_all_hex(clr_arr[0],(step_count+1)%LEDS_IN_BOX);
+                fill_one_led_all_hex(CRGB::Black,step_count%LEDS_IN_BOX);
                 }
               else{
                 fill_one_led_all_hex(clr_arr[0],step_count%LEDS_IN_BOX);
               }
-              step_count++;}                 
+              }
+              step_count++;                 
             break;}
           case RotationOuter:{////this needs testing -----------------------------
-            mySerial.println("rotateOuter"); //using preset as util var
+            //mySerial.println("rotateOuter"); //using preset as util var
             if(step_count>=outer_led_num)
               step_count=0;
             leds[outer_led_adr[step_count]]=clr_arr[0];
@@ -464,14 +445,15 @@ class Hex_controller{
             break;}
           case PresetAnim:{
             if(preset!=0 && fill_done){
+              //mySerial.println("animation update");
               animation_step++;
               if(1<animation_step){ //for presets with len 2
                 animation_step =0;  
                 } 
-              mySerial.print("preset fill anim step:");
-              mySerial.print(animation_step);
-              mySerial.print(" and preset: ");
-              mySerial.println(preset);
+              //mySerial.print("preset fill anim step:");
+              //mySerial.print(animation_step);
+              //mySerial.print(" and preset: ");
+              //mySerial.println(preset);
               switch(preset){
                 case 1:
                   change_fill_mode(preset1[animation_step]);        
@@ -492,38 +474,32 @@ class Hex_controller{
             }
             break;}
           case RainbowSwipeVert:{
-            fill_rainbow(vert_leds,MAX_VERT_LVL,step_count);
             for(int i=0;i<=MAX_VERT_LVL;i++){
+              fill_rainbow(vert_leds,MAX_VERT_LVL,step_count);
               //CRGB clr=clr.setHue(((step_count+i)*step)%255);
               fill_leds_on_Vert_lvl(i,vert_leds[i]);
             }
             step_count= (step_count>255) ? 0 : step_count+1; 
             break;}
           case RainbowSwipeHorz:{
-            fill_rainbow(horz_leds,MAX_HORZ_LVL,step_count);
-            for(int i=0;i<MAX_HORZ_LVL;i++){  
+            for(int i=0;i<MAX_HORZ_LVL;i++){
+              fill_rainbow(horz_leds,MAX_HORZ_LVL,step_count);
               //CRGB clr=clr.setHue(((step_count+i)*step)%255);
               fill_leds_on_Hor_lvl(i,horz_leds[i]);
               }
             step_count= (step_count>255) ? 0 : step_count+1;
             break;}
-          case RainbowOuter:{
-            my_fill_rainbow(outer_leds,outer_led_num,step_count);
-            for(int i=0;i<outer_led_num;i++){
-              leds[outer_led_adr[i]]=outer_leds[i];
-            }
-            step_count= (step_count>255) ? 0 : step_count+1;
-            break;}
           default:
-            mySerial.println("ERROR: False mode");
+            break;
+            //mySerial.println("ERROR: False mode");
           }
         if(!fill_done && fill_mode!= Not_fill_mode){  
-          mySerial.print("filling with fillMode: ");
-          mySerial.println(fill_mode);
-          mySerial.print("Step count is: ");
-          mySerial.println(step_count);
-          mySerial.print("Step is: ");
-          mySerial.println(step);
+          //mySerial.print("filling with fillMode: ");
+          //mySerial.println(fill_mode);
+          //mySerial.print("Step count is: ");
+          //mySerial.println(step_count);
+          //mySerial.print("Step is: ");
+          //mySerial.println(step);
           if(rainbow){clr_arr[animation_step]=clr_arr[0];}
           switch (fill_mode){
             case Fill_by_lines_fTop :
