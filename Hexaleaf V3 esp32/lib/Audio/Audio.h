@@ -1,10 +1,11 @@
+#ifndef __AUDIO_H_
+#define __AUDIO_H_
 #include <driver/i2s.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <arduinoFFT.h>
 #include <math.h>
-#ifndef AUDIO
-#define AUDIO
+
 // you shousldn't need to change these settings
 // most microphones will probably default to left channel but you may need to tie the L/R pin low
 #define I2S_MIC_SERIAL_CLOCK GPIO_NUM_26
@@ -71,13 +72,7 @@ int16_t micReadBuffer_[kFFT_SampleCount] = {0};
 
 QueueHandle_t pI2S_Queue_ = nullptr;
 
-/* ----- Fastled constants ----- */
 
-const uint8_t kPinLedStrip = 22; // M5StickC grove port, yellow cable
-
-const uint8_t kNumLeds = 150;
-
-const uint8_t kLedStripBrightness = 150;
 
 
 

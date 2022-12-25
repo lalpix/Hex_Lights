@@ -1,20 +1,24 @@
-#include "structs.h"
-#include "Defines.h"
 
-#ifndef HEX_NODE
-#define HEX_NODE
+#ifndef __HEX_NODE_
+#define __HEX_NODE_
+
+#include "FastLED.h"
+#include "structs.h"
+
 class Hexnode
 { 
   private:
     uint8_t horiz_lvl;
     uint8_t vert_lvl;
-    uint16_t ledStart;
-    uint16_t ledEnd;
+   
     uint16_t fadeTimeMs;
     CRGB color;
     FadeVector fadeVector;
     uint8_t spin_index=0;
   public:
+    uint16_t ledStart;
+    uint16_t ledEnd;
+    uint8_t connectionPoints[6]={0};
     CRGB colorTo=CRGB::Black;
     Hexnode(uint8_t index)
     {   
