@@ -5,20 +5,22 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "HEX_node.h"
-CRGB leds[TOTAL_LEDS];
-CRGB vert_leds[TOTAL_LEDS];
-CRGB horz_leds[TOTAL_LEDS];
-uint16_t outer_led_adr[TOTAL_LEDS];
-int outer_led_num;
+#include "Audio.h"
+
+static CRGB leds[TOTAL_LEDS];
+static CRGB vert_leds[TOTAL_LEDS];
+static CRGB horz_leds[TOTAL_LEDS];
+static uint16_t outer_led_adr[TOTAL_LEDS];
+static int outer_led_num;
 // p
 // first-x(-left/right), second-y(up/down)
-int8_t position[NUM_BOXES][2] = {{0, 0}, {1, 1}, {2, 0}, {3, 1}, {4, 0}};
-uint8_t points_of_contact[NUM_BOXES][6]; // nth bit will tell if nth side is in contact
+static int8_t position[NUM_BOXES][2] = {{0, 0}, {1, 1}, {2, 0}, {3, 1}, {3, 3}};
+static uint8_t points_of_contact[NUM_BOXES][6]; // nth bit will tell if nth side is in contact
 
-FillMode preset1[] = {Fill_by_lines_fLeft, Fill_by_lines_fRight};                      // left-right
-FillMode preset2[] = {Fill_by_lines_fTop, Fill_by_lines_fBottom};                      // top-bottom
-FillMode preset3[] = {Fill_by_lines_meet_in_midle_TB, Fill_by_lines_meet_in_midle_LR}; // middle meeting
-FillMode preset4[] = {Fill_by_rotation_fBottom, Fill_by_rotation_fTop};                // rotation
+static FillMode preset1[] = {Fill_by_lines_fLeft, Fill_by_lines_fRight};                      // left-right
+static FillMode preset2[] = {Fill_by_lines_fTop, Fill_by_lines_fBottom};                       // top-bottom
+static FillMode preset3[] = {Fill_by_lines_meet_in_midle_TB, Fill_by_lines_meet_in_midle_LR}; // middle meeting
+static FillMode preset4[] = {Fill_by_rotation_fBottom, Fill_by_rotation_fTop};                // rotation
 
 class Hex_controller
 {
@@ -42,18 +44,17 @@ private:
     HardwareSerial mySerial;
 
 public:
-    Hex_controller() : clr_arr { (CRGB::Red), (CRGB::Lime), (CRGB::Pink), (CRGB::DarkKhaki) }
-    ,
-        fade(false),
-        rainbow(0),
-        maxBrightness(60), // 0--100
-        mode(Stationar),
-        change(true),
-        lastDrew(0),
-        fill_done(true),
-        fill_mode(Fill_by_lines_fTop),
-        drawEveryNthMs(200),
-        mySerial(0)
+    Hex_controller() : clr_arr{(CRGB::Red), (CRGB::Lime), (CRGB::Pink), (CRGB::DarkKhaki)},
+                       fade(false),
+                       rainbow(0),
+                       maxBrightness(60), // 0--100
+                       mode(Stationar),
+                       change(true),
+                       lastDrew(0),
+                       fill_done(true),
+                       fill_mode(Fill_by_lines_fTop),
+                       drawEveryNthMs(200),
+                       mySerial(0)
     {
         step = 1;
         step_count = 0;
@@ -111,8 +112,8 @@ void Hex_controller::calculate_outer_leds()
     // for all boxes
     for (int i = 0; i < NUM_BOXES; i++)
     {
-        //mySerial.print("box num: ");
-        //mySerial.println(i);
+        // mySerial.print("box num: ");
+        // mySerial.println(i);
         int x = position[i][0];
         int y = position[i][1];
         // check all other boxes
@@ -239,25 +240,25 @@ void Hex_controller::calculate_ledCount_inDir()
         }
     }
     HorzCount = 2 + 2 * LED_IN_SIDE + (HorzMax - HorzMin) * (LED_IN_SIDE + 1);
-    VertCount =3 * LED_IN_SIDE + (VertMax - VertMin) * (LED_IN_SIDE*2)+1;
-    mySerial.printf("cnt horz-%d verz-%d\n", HorzCount, VertCount);
+    VertCount = 3 * LED_IN_SIDE + (VertMax - VertMin) * (LED_IN_SIDE * 2) + 1;
+    // mySerial.printf("cnt horz-%d verz-%d\n", HorzCount, VertCount);
 }
 
 // basic fill functions
 void Hex_controller::fill_leds_on_Vert_lvl(uint8_t lvl, CRGB clr)
 {
-    mySerial.printf("fill vert lvl %d\n",lvl);
+    mySerial.printf("fill vert lvl %d\n", lvl);
     for (uint8_t i = 0; i < NUM_BOXES; i++)
-    {   
-        int line_lvl = lvl - (10 * position[i][0]) - 1;
+    {
+        int line_lvl = lvl - (10 * position[i][0]);
         if (line_lvl >= 0 && line_lvl <= 15)
-            nodes[i]->fill_vert_line(clr, leds, 15-line_lvl);
+            nodes[i]->fill_vert_line(clr, leds, 15 - line_lvl);
     }
 }
 void Hex_controller::fill_leds_on_Hor_lvl(uint8_t lvl, CRGB clr)
 {
-    mySerial.printf("fill vert lvl %d\n", lvl);
-    printCRGB(clr);
+    // mySerial.printf("fill vert lvl %d\n", lvl);
+    // printCRGB(clr);
 
     for (uint8_t i = 0; i < NUM_BOXES; i++)
     {
@@ -277,7 +278,7 @@ void Hex_controller::fill_same_dir_sides(CRGB clr, int direc)
 void Hex_controller::fill_all_hex(CRGB clr)
 {
     // mySerial.print("filling all hex with clr: ");
-    printCRGB(clr);
+    // printCRGB(clr);
     for (int i = 0; i < TOTAL_LEDS; i++)
     {
         leds[i] = clr;
@@ -534,18 +535,97 @@ void Hex_controller::update()
             step_count = (step_count > 255) ? 0 : step_count + 1;
             break;
         }
+        case AudioBeatReact:{
+
+        } 
+        case AudioFreqPool:
+        {
+            // mySerial.println("Audio freq pool----");
+            float magnitudeBand[FREQ_BAND_COUNT] = {0.0f};
+            float magnitudeBandWeightedMax = 0.0f;
+            // mySerial.println("Start new audio reading");
+
+            newAudioReading(magnitudeBand, &magnitudeBandWeightedMax);
+            // mySerial.println("Audio reading DONE");
+
+            /*float nf;
+
+            if (fabs(magnitudeBand[1]) < 0.001f)
+            {
+                nf = 1.0f;
+            }
+            else
+            {
+                nf = 1.0f / magnitudeBand[1];
+            }
+
+            Serial.printf("0:%04.2f 1:%04.2f 2:%04.2f 3:%04.2f 4:%04.2f 5:%04.2f 6:%04.2f 7:%04.2f 8:%04.2f 9:%04.2f 10:%04.2f 11:%04.2f 12:%04.2f 13:%04.2f 14:%04.2f 15:%04.2f 16:%04.2f 17:%04.2f 18:%04.2f 19:%04.2f Sum:%05.1f Sens: %04.1f \n", // t: %d
+                          magnitudeBand[0] * nf,
+                          magnitudeBand[1] * nf,
+                          magnitudeBand[2] * nf,
+                          magnitudeBand[3] * nf,
+                          magnitudeBand[4] * nf,
+                          magnitudeBand[5] * nf,
+                          magnitudeBand[6] * nf,
+                          magnitudeBand[7] * nf,
+                          magnitudeBand[8] * nf,
+                          magnitudeBand[9] * nf,
+                          magnitudeBand[10] * nf,
+                          magnitudeBand[11] * nf,
+                          magnitudeBand[12] * nf,
+                          magnitudeBand[13] * nf,
+                          magnitudeBand[14] * nf,
+                          magnitudeBand[15] * nf,
+                          magnitudeBand[16] * nf,
+                          magnitudeBand[17] * nf,
+                          magnitudeBand[18] * nf,
+                          magnitudeBand[19] * nf,
+                          0, // magnitudeSum,
+                          0  // sensitivityFactor_
+            );*/
+            int poolsForOneHex = FREQ_BAND_COUNT / NUM_BOXES;
+            for (int i = 0; i < NUM_BOXES; i++)
+            {
+                float bandMagAvg = 0;
+                float bandAmpAvg = 0;
+                for (int j = 0; j < poolsForOneHex; j++)
+                {
+                    int idx = (i * poolsForOneHex) + j;
+                    bandMagAvg += magnitudeBand[idx] * kFreqBandAmp[idx];
+                }
+                bandMagHistory[i][hist_ptr] = bandMagAvg;
+                hist_ptr++;
+                if (hist_ptr >= HIST_NUM)
+                {
+                    hist_ptr = 0;
+                }
+                
+                float histAvgMag = 0;
+                for (int h = 0; h < HIST_NUM;h++){
+                    histAvgMag += bandMagHistory[i][h];
+                }
+                histAvgMag = histAvgMag / ((float)HIST_NUM);
+                int histMult = 100 * (bandMagAvg / histAvgMag);
+                uint8_t lightness = min((int)(bandMagAvg  * histMult), 255);
+                nodes[i]->fill_hex(CHSV(20 * i, 255, lightness), leds);
+            }
+            break;
+        }
         default:
+            // here test code
+            fill_leds_on_Vert_lvl(2, CRGB::Red);
+            fill_leds_on_Vert_lvl(3, CRGB::Green);
+            fill_leds_on_Vert_lvl(4, CRGB::Blue);
+            fill_leds_on_Vert_lvl(14, CRGB::Blue);
+
+            fill_leds_on_Vert_lvl(15, CRGB::Red);
+
             break;
             // mySerial.println("ERROR: False mode");
         }
         if (!fill_done && fill_mode != Not_fill_mode)
         {
-            // mySerial.print("filling with fillMode: ");
-            // mySerial.println(fill_mode);
-            // mySerial.print("Step count is: ");
-            // mySerial.println(step_count);
-            // mySerial.print("Step is: ");
-            // mySerial.println(step);
+
             if (rainbow)
             {
                 clr_arr[animation_step] = clr_arr[0];

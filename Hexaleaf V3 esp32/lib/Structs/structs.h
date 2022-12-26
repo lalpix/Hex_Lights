@@ -1,10 +1,6 @@
 #ifndef STRUCT_H
 #define STRUCT_H
 
-
-
-
-
 /* Number of LEDs in each box/leaf */
 #define LEDS_IN_BOX 30
 /*The number of boxes */
@@ -61,10 +57,12 @@ enum Mode
     Rotation,  // all hex rotating
     RotationOuter,
     StationarOuter,
-    PresetAnim,
     RandColorRandHex,
     RainbowSwipeVert,
     RainbowSwipeHorz,
+    AudioBeatReact,
+    AudioFreqPool,
+    PresetAnim,
     Mode_num
 };
 

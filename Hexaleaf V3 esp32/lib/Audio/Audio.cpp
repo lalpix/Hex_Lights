@@ -1,4 +1,5 @@
 #include "Audio.h"
+
 bool setupSpectrumAnalysis()
 {
     bool success = true;
@@ -8,13 +9,13 @@ bool setupSpectrumAnalysis()
     uint16_t binIdxEnd;   // Index of the last frequency bin of the current frequency band
     
     // Set bin index for the start of the first frequency band
-    binIdxStart = ceilf( kFreqBandStartHz / kFFT_FreqStep);
-
+    binIdxStart = ceilf(kFreqBandStartHz / FFT_FREQ_STEP);
+    //Serial.printf("bin idx start=%d feq baund cnt %d", binIdxStart, FREQ_BAND_COUNT);
     // Compute values for all frequency bands
-    for (uint8_t bandIdx = 0; bandIdx < kFreqBandCount; bandIdx++)
+    for (uint8_t bandIdx = 0; bandIdx < FREQ_BAND_COUNT; bandIdx++)
     {
         // Store index of first frequency bin of current band
-        if ( binIdxStart < kFFT_FreqBinCount )
+        if (binIdxStart < FFT_FREQ_BIN_COUNT)
         {
             freqBandBinIdxStart_[bandIdx] = binIdxStart;
         }
@@ -28,16 +29,22 @@ bool setupSpectrumAnalysis()
         }
         
         // Compute index of last frequency bin of current band
-        binIdxEnd = ceilf( kFreqBandEndHz[bandIdx] / kFFT_FreqStep ) - 1;
-        
-        if ( binIdxEnd < kFFT_FreqBinCount)
+        // Serial.printf("step is %f\n", (fftData_t)FFT_FREQ_STEP);
+        // Serial.printf("band end is %f\n", kFreqBandEndHz[bandIdx]);
+        // float res = kFreqBandEndHz[bandIdx] / ((fftData_t)FFT_FREQ_STEP);
+        // Serial.printf("ceilf inside is %f\n", res);
+
+        binIdxEnd = ceilf(kFreqBandEndHz[bandIdx] / ((fftData_t)FFT_FREQ_STEP)) - 1;
+        //Serial.printf("bin idx end=%d should be %f\n", binIdxEnd, kFreqBandEndHz[bandIdx]);
+
+        if (binIdxEnd < FFT_FREQ_BIN_COUNT)
         {
             freqBandBinIdxEnd_[bandIdx] = binIdxEnd;
         }
         else
         {
             freqBandBinIdxEnd_[bandIdx] = 0;
-            binIdxEnd = kFFT_FreqBinCount - 1;
+            binIdxEnd = FFT_FREQ_BIN_COUNT - 1;
 
             success = false;
 
@@ -72,31 +79,15 @@ bool setupI2Smic()
     //   In the M5StickC microphone example 'I2S_CHANNEL_FMT_ALL_RIGHT' is used which means two channels.
     //   Afterwards, i2s_set_clk is called to change the DMA configuration to just one channel.
     //
-
-  /*  // FROM TESTING FILE
     i2s_config_t i2sConfig = {
-        .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
-        .sample_rate = kSampleRate,//SAMPLE_RATE,
-        .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
-        .channel_format = I2S_CHANNEL_FMT_ONLY_RIGHT, // changed from left
-        .communication_format = I2S_COMM_FORMAT_STAND_I2S,
-        .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
-        .dma_buf_count = 4,
-        .dma_buf_len = 1024,
-        .use_apll = false,
-        .tx_desc_auto_clear = false,
-        .fixed_mclk = 0};
-*/
-    i2s_config_t i2sConfig = {
-        .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),// | I2S_MODE_PDM
-        .sample_rate = kSampleRate,
+        .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX), // | I2S_MODE_PDM
+        .sample_rate = SAMPLE_RATE,
         .bits_per_sample = kI2S_BitsPerSample,
         .channel_format = I2S_CHANNEL_FMT_ONLY_RIGHT,
         .communication_format = I2S_COMM_FORMAT_STAND_I2S,
         .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
         .dma_buf_count = kI2S_BufferCount,
-        .dma_buf_len = kI2S_BufferSizeSamples
-    };
+        .dma_buf_len = kI2S_BufferSizeSamples};
 
     i2sErr = i2s_driver_install(I2S_NUM_0, &i2sConfig, kI2S_QueueLength, &pI2S_Queue_);
 
@@ -131,22 +122,23 @@ bool setupI2Smic()
     return true;
 }
 
-void newAudioReading(float *magnitudeBand, float *magnitudeBandWeightedMax){
+void newAudioReading(float *magnitudeBand, float *magnitudeBandWeightedMax)
+{
     size_t i2sBytesRead = 0;
-
-    i2s_read(I2S_NUM_0, raw_samples, sizeof(int16_t) * kFFT_SampleCount, &i2sBytesRead, portMAX_DELAY); // delay on this rougly 28ms
+    i2s_read(I2S_NUM_0, raw_samples, sizeof(int16_t) * FFT_SAMPLE_COUNT, &i2sBytesRead, portMAX_DELAY); // delay on this rougly 28ms
     int max_amp = 0;
     int samples_read = i2sBytesRead / sizeof(int16_t);
-
+    //Serial.println("i2s read done");
     int32_t blockSum = raw_samples[0];
 
-    for (int i = 1; i < kFFT_SampleCount; i++)
+    for (int i = 1; i < FFT_SAMPLE_COUNT; i++)
     {
         blockSum += raw_samples[i];
     }
+    
+    int16_t blockAvg = blockSum / FFT_SAMPLE_COUNT;
 
-    int16_t blockAvg = blockSum / kFFT_SampleCount;
-      for (int i = 0; i < kFFT_SampleCount; i++)
+    for (int i = 0; i < FFT_SAMPLE_COUNT; i++)
     {
         // Corrected input value: Subtract the block average from each sample in order remove the DC component
         int16_t v = raw_samples[i] - blockAvg;
@@ -170,15 +162,16 @@ void newAudioReading(float *magnitudeBand, float *magnitudeBandWeightedMax){
         fftDataReal_[i] = r;
         fftDataImag_[i] = 0.0f;
     }
-    
     fft_.Compute(FFT_FORWARD);
+    //Serial.println("fft compute done");
 
-    
     fftData_t magnitudeSum = 0;
     // Compute magnitude value for each frequency bin, i.e. only first half of the FFT results
-    for (uint16_t i = 0; i < kFFT_SampleCount; i++)
+    for (uint16_t i = 0; i < FFT_FREQ_BIN_COUNT; i++)
     {
         float magValNew = sqrtf(fftDataReal_[i] * fftDataReal_[i] + fftDataImag_[i] * fftDataImag_[i]);
+        //Serial.printf("mag %.4f at bin %d \n",magValNew,i);
+
         // Update the averaged spectrum using the current values
         const float w1 = 16.0f / 128.0f;
         const float w2 = 1 - w1;
@@ -188,17 +181,21 @@ void newAudioReading(float *magnitudeBand, float *magnitudeBandWeightedMax){
         
         // Compute overall sum of all (low pass filtered) frequency bins
         magnitudeSum += magnitudeSpectrumAvg_[i];
+
     }
-    
-    
-    for (uint8_t bandIdx = 0; bandIdx < kFreqBandCount; bandIdx++)
+
+    for (uint8_t bandIdx = 0; bandIdx < FREQ_BAND_COUNT; bandIdx++)
     {
+        //Serial.printf("actual bandMag = %d\n", bandIdx);
         // Interate over all frequency bins assigned to the frequency band
         for (uint16_t binIdx = freqBandBinIdxStart_[bandIdx]; binIdx <= freqBandBinIdxEnd_[bandIdx]; binIdx++)
         {
             // Apply maximum norm to the frequency bins of each frequency band
-            if ( magnitudeSpectrumAvg_[binIdx] > magnitudeBand[bandIdx] )
+            //Serial.printf("check band %d new mag %f\n", bandIdx, magnitudeBand[bandIdx]);
+        
+            if ( magnitudeSpectrumAvg_[binIdx] > magnitudeBand[bandIdx] ){
                 magnitudeBand[bandIdx] = magnitudeSpectrumAvg_[binIdx];
+            }
         }
 
         float magnitudeBandWeighted = magnitudeBand[bandIdx] * kFreqBandAmp[bandIdx];
@@ -215,10 +212,41 @@ void newAudioReading(float *magnitudeBand, float *magnitudeBandWeightedMax){
             *magnitudeBandWeightedMax = magnitudeBandWeighted;
         }
     }
-    
     // Update the sensitivity factor
     const float s1 = 8.0f / 1024.0f;
     const float s2 = 1.0f - s1;
     sensitivityFactor_ =  min( (250.0f / *magnitudeBandWeightedMax) * s1 + sensitivityFactor_ * s2, kSensitivityFactorMax );
+    /*float nf;
 
+    if (fabs(magnitudeBand[1]) < 0.001f)
+    {
+        nf = 1.0f;
+    }
+    else
+    {
+        nf = 1.0f / magnitudeBand[1];
+    }
+    
+    Serial.printf("0:%04.2f 1:%04.2f 2:%04.2f 3:%04.2f 4:%04.2f 5:%04.2f 6:%04.2f 7:%04.2f 8:%04.2f 9:%04.2f 10:%04.2f 11:%04.2f 12:%04.2f 13:%04.2f 14:%04.2f 15:%04.2f 16:%04.2f 17:%04.2f 18:%04.2f 19:%04.2f \n", // t: %d
+                  magnitudeBand[0] * nf,
+                  magnitudeBand[1] * nf,
+                  magnitudeBand[2] * nf,
+                  magnitudeBand[3] * nf,
+                  magnitudeBand[4] * nf,
+                  magnitudeBand[5] * nf,
+                  magnitudeBand[6] * nf,
+                  magnitudeBand[7] * nf,
+                  magnitudeBand[8] * nf,
+                  magnitudeBand[9] * nf,
+                  magnitudeBand[10] * nf,
+                  magnitudeBand[11] * nf,
+                  magnitudeBand[12] * nf,
+                  magnitudeBand[13] * nf,
+                  magnitudeBand[14] * nf,
+                  magnitudeBand[15] * nf,
+                  magnitudeBand[16] * nf,
+                  magnitudeBand[17] * nf,
+                  magnitudeBand[18] * nf,
+                  magnitudeBand[19] * nf
+    );*/
 }

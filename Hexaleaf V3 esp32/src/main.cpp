@@ -11,7 +11,6 @@
 #include "structs.h"
 #include "HEX_node.h"
 #include "HEX_controller.h"
-// #include "Audio.h"
 
 // esp_rmaker_device_t *device = esp_rmaker_device_create("Light", NULL, NULL);
 /* ----- Fastled constants ----- */
@@ -41,83 +40,18 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
 {
     Serial.print("incoming: ");
     Serial.println(topic);
+    char msg[length+1];
+    for (int i = 0; i < length;i++){
+        msg[i] = (char)payload[i];
+    }
+    msg[length] = '\0';
 
-    // /*##################### Lamp 1 #####################*/
-    // if (strstr(topic, "esp32/lamp1"))
-    // {
-    //     StaticJsonDocument<200> doc;
-    //     deserializeJson(doc, payload);
-    //     String Relay1 = doc["status"];
-    //     int r1 = Relay1.toInt();
-    //     if (r1 == 1)
-    //     {
-    //         digitalWrite(lamp1, LOW);
-    //         Serial.print("Lamp1 is ON");
-    //     }
-    //     else if (r1 == 0)
-    //     {
-    //         digitalWrite(lamp1, HIGH);
-    //         Serial.print("Lamp1 is OFF");
-    //     }
-    // }
-
-    // /*##################### Lamp 2 #####################*/
-    // if (strstr(topic, "esp32/lamp2"))
-    // {
-    //     StaticJsonDocument<200> doc;
-    //     deserializeJson(doc, payload);
-    //     String Relay2 = doc["status"];
-    //     int r2 = Relay2.toInt();
-    //     if (r2 == 1)
-    //     {
-    //         digitalWrite(lamp2, LOW);
-    //         Serial.print("Lamp2 is ON");
-    //     }
-    //     else if (r2 == 0)
-    //     {
-    //         digitalWrite(lamp2, HIGH);
-    //         Serial.print("Lamp2 is OFF");
-    //     }
-    // }
-
-    // /*##################### Lamp 3 #####################*/
-    // if (strstr(topic, "esp32/lamp3"))
-    // {
-    //     StaticJsonDocument<200> doc;
-    //     deserializeJson(doc, payload);
-    //     String Relay3 = doc["status"];
-    //     int r3 = Relay3.toInt();
-    //     if (r3 == 1)
-    //     {
-    //         digitalWrite(lamp3, LOW);
-    //         Serial.print("Lamp3 is ON");
-    //     }
-    //     else if (r3 == 0)
-    //     {
-    //         digitalWrite(lamp3, HIGH);
-    //         Serial.print("Lamp3 is OFF");
-    //     }
-    // }
-
-    // /*##################### Lamp 4 #####################*/
-    // if (strstr(topic, "esp32/lamp4"))
-    // {
-    //     StaticJsonDocument<200> doc;
-    //     deserializeJson(doc, payload);
-    //     String Relay4 = doc["status"];
-    //     int r4 = Relay4.toInt();
-    //     if (r4 == 1)
-    //     {
-    //         digitalWrite(lamp4, LOW);
-    //         Serial.print("Lamp4 is ON");
-    //     }
-    //     else if (r4 == 0)
-    //     {
-    //         digitalWrite(lamp4, HIGH);
-    //         Serial.print("Lamp4 is OFF");
-    //     }
-    // }
-    Serial.println();
+    Serial.println(msg);
+    if(strstr(topic,"Mode")){
+        hexController->change_mode((Mode)atoi((char*)payload));
+        Mode m = (Mode)atoi((char *)payload);
+        Serial.printf("Mode is now %d\n", m);
+    }
 }
 void WifiSetup()
 {
@@ -157,44 +91,33 @@ void WifiSetup()
     }
 
     // Subscribe to a topic
-    client.subscribe("testTopic");
-    // client.subscribe(AWS_IOT_SUBSCRIBE_TOPIC2);
-    // client.subscribe(AWS_IOT_SUBSCRIBE_TOPIC3);
-    // client.subscribe(AWS_IOT_SUBSCRIBE_TOPIC4);
+    client.subscribe("Mode");
+
 
     Serial.println("AWS IoT Connected!");
 }
-void setupLedStrip()
-{
-    FastLED.addLeds<WS2812B, kPinLedStrip>(ledStrip_, kNumLeds);
-    FastLED.clear();
-    // FastLED.setBrightness(kLedStripBrightness);
-    // FastLED.setMaxPowerInVoltsAndMilliamps(5, 450); // Set maximum power consumption to 5 V and 450 mA
-    ledStrip_[0].setRGB(150, 0, 0);
 
-    FastLED.show();
-}
 void setup()
 {
+    
     Serial.begin(115200);
     delay(2000); // power-up safety delay
-
-    Serial.println("> Setup.");
+    Serial.println("> Setup....");
     WifiSetup();
+    setupI2Smic();
+    setupSpectrumAnalysis();
+    
     hexController = new Hex_controller();
     hexController->set_serial(Serial);
     hexController->init();
-    hexController->change_mode(RotationOuter);
-    hexController->set_pre_anim(1);
-    hexController->set_rainbow(1);
+
+    hexController->change_mode(AudioFreqPool);
+    hexController->set_rainbow(0);
     hexController->set_fade(true);
-    hexController->set_speed(100);
+    hexController->set_speed(1);
     hexController->update();
-    last_ch = millis();
-    /*
-      setupI2Smic();
-      setupSpectrumAnalysis();
-      setupLedStrip();*/
+    Serial.println("Setup DONE");
+
     delay(2000);
 }
 
@@ -204,27 +127,27 @@ void loop()
     client.loop();
     hexController->update();
     /*
-        float magnitudeBand[kFreqBandCount] = { 0.0f };
+    float magnitudeBand[FREQ_BAND_COUNT] = {0.0f};
 
-        float magnitudeBandWeightedMax = 0.0f;
+    float magnitudeBandWeightedMax = 0.0f;
 
-        newAudioReading(magnitudeBand, &magnitudeBandWeightedMax);
+    newAudioReading(magnitudeBand, &magnitudeBandWeightedMax);
 
-        // ----- Beat detection -----
+    // ----- Beat detection -----
 
-        // Maintain history of last three magnitude values of the bass band
-        beatHist_[kBeatDetectBand][0] = beatHist_[kBeatDetectBand][1];
-        beatHist_[kBeatDetectBand][1] = beatHist_[kBeatDetectBand][2];
-        beatHist_[kBeatDetectBand][2] = magnitudeBand[kBeatDetectBand] * kFreqBandAmp[kBeatDetectBand] * sensitivityFactor_;
+    // Maintain history of last three magnitude values of the bass band
+    beatHist_[kBeatDetectBand][0] = beatHist_[kBeatDetectBand][1];
+    beatHist_[kBeatDetectBand][1] = beatHist_[kBeatDetectBand][2];
+    beatHist_[kBeatDetectBand][2] = magnitudeBand[kBeatDetectBand] * kFreqBandAmp[kBeatDetectBand] * sensitivityFactor_;
 
-        float diff1 = beatHist_[1] - beatHist_[0];
-        float diff2 = beatHist_[2] - beatHist_[1];
+    float diff1 = beatHist_[1] - beatHist_[0];
+    float diff2 = beatHist_[2] - beatHist_[1];
 
-        // Detect magnitude peak
-        if ( ((diff1 >= kBeatThreshold) && (diff2 < 0)) || ((diff1 > 0) && (diff2 <= -kBeatThreshold)) )
-        {
-            Serial.printf("beat detected");
-            beatVisIntensity_ = 250;
+    // Detect magnitude peak
+    if (((diff1 >= kBeatThreshold) && (diff2 < 0)) || ((diff1 > 0) && (diff2 <= -kBeatThreshold)))
+    {
+        Serial.printf("beat detected");
+        beatVisIntensity_ = 250;
         }
         else {
             if ( beatVisIntensity_ >= 25 )
@@ -232,10 +155,10 @@ void loop()
         }
      // ----- Update the Led strip -----
 
-        if (kNumLeds <= 2*kFreqBandCount + 4)
+        if (kNumLeds <= 2 * FREQ_BAND_COUNT + 4)
         {
             // Show beat detection at the beginning of the strip
-            const uint8_t numBassLeds = (kNumLeds - kFreqBandCount) / 2;
+            const uint8_t numBassLeds = (kNumLeds - FREQ_BAND_COUNT) / 2;
 
             for (int i = 0; i < numBassLeds; i++)
             {
@@ -245,9 +168,9 @@ void loop()
             // Show frequency intensities on the remaining Leds
             const uint8_t colorStart = 30;
             const uint8_t colorEnd   = 210;
-            const uint8_t colorStep  = (colorEnd - colorStart) / kFreqBandCount;
+            const uint8_t colorStep = (colorEnd - colorStart) / FREQ_BAND_COUNT;
 
-            for (int k = 0; k < kFreqBandCount; k++)
+            for (int k = 0; k < FREQ_BAND_COUNT; k++)
             {
                 uint8_t color = colorStart + k * colorStep;
                 uint8_t lightness = min( int(magnitudeBand[k] * kFreqBandAmp[k] * sensitivityFactor_), 255);
@@ -255,8 +178,8 @@ void loop()
                 ledStrip_[k+numBassLeds].setHSV(color, 255, lightness);
             }
 
-            // Show beat detection at the beginning of the strip
-            for (int i = numBassLeds + kFreqBandCount; i < kNumLeds; i++)
+            // Show beat detection at the end of the strip
+            for (int i = numBassLeds + FREQ_BAND_COUNT; i < kNumLeds; i++)
             {
                 ledStrip_[i].setHSV( 250, 255, beatVisIntensity_ );
             }
@@ -264,7 +187,7 @@ void loop()
         else
         {
             // Show beat detection at the beginning of the strip
-            const uint8_t numBassLeds = (kNumLeds - 2 * kFreqBandCount) / 2;
+            const uint8_t numBassLeds = (kNumLeds - 2 * FREQ_BAND_COUNT) / 2;
 
             for (int i = 0; i < numBassLeds; i++)
             {
@@ -274,61 +197,60 @@ void loop()
             // Show frequency intensities on the remaining Leds
             const uint8_t colorStart = 30;
             const uint8_t colorEnd   = 210;
-            const uint8_t colorStep  = (colorEnd - colorStart) / kFreqBandCount;
+            const uint8_t colorStep = (colorEnd - colorStart) / FREQ_BAND_COUNT;
 
-            for (int k = 0; k < kFreqBandCount; k++)
+            for (int k = 0; k < FREQ_BAND_COUNT; k++)
             {
                 uint8_t color = colorStart + k * colorStep;
                 uint8_t lightness = min( int(magnitudeBand[k] * kFreqBandAmp[k] * sensitivityFactor_), 255);
 
                 ledStrip_[numBassLeds + k].setHSV(color, 255, lightness);
 
-                ledStrip_[numBassLeds + 2*kFreqBandCount - k - 1].setHSV(color, 255, lightness);
+                ledStrip_[numBassLeds + 2 * FREQ_BAND_COUNT - k - 1].setHSV(color, 255, lightness);
             }
 
             // Show beat detection at the beginning of the strip
-            for (int i = numBassLeds + 2*kFreqBandCount; i < kNumLeds; i++)
+            for (int i = numBassLeds + 2 * FREQ_BAND_COUNT; i < kNumLeds; i++)
             {
                 ledStrip_[i].setHSV( 250, 255, beatVisIntensity_ );
             }
         }
 
         FastLED.show();
-        float nf;
+        
+        */
+   /*float nf;
 
-        if (fabs(magnitudeBand[1]) < 0.001f)
-        {
-            nf = 1.0f;
+    if (fabs(magnitudeBand[1]) < 0.001f)
+    {
+        nf = 1.0f;
         }
         else
         {
             nf = 1.0f / magnitudeBand[1];
         }
-        */
-    /*
-       Serial.printf("0:%04.2f 1:%04.2f 2:%04.2f 3:%04.2f 4:%04.2f 5:%04.2f 6:%04.2f 7:%04.2f 8:%04.2f 9:%04.2f 10:%04.2f 11:%04.2f 12:%04.2f 13:%04.2f 14:%04.2f 15:%04.2f 16:%04.2f 17:%04.2f 18:%04.2f 19:%04.2f Sum:%05.1f Sens: %04.1f \n",//t: %d
-                      magnitudeBand[0] * nf,
-                      magnitudeBand[1] * nf,
-                      magnitudeBand[2] * nf,
-                      magnitudeBand[3] * nf,
-                      magnitudeBand[4] * nf,
-                      magnitudeBand[5] * nf,
-                      magnitudeBand[6] * nf,
-                      magnitudeBand[7] * nf,
-                      magnitudeBand[8] * nf,
-                      magnitudeBand[9] * nf,
-                      magnitudeBand[10] * nf,
-                      magnitudeBand[11] * nf,
-                      magnitudeBand[12] * nf,
-                      magnitudeBand[13] * nf,
-                      magnitudeBand[14] * nf,
-                      magnitudeBand[15] * nf,
-                      magnitudeBand[16] * nf,
-                      magnitudeBand[17] * nf,
-                      magnitudeBand[18] * nf,
-                      magnitudeBand[19] * nf,
-                      0,//magnitudeSum,
-                      0//sensitivityFactor_
-                      );*/
-    // timeDeltaMicros);
+    Serial.printf("0:%04.2f 1:%04.2f 2:%04.2f 3:%04.2f 4:%04.2f 5:%04.2f 6:%04.2f 7:%04.2f 8:%04.2f 9:%04.2f 10:%04.2f 11:%04.2f 12:%04.2f 13:%04.2f 14:%04.2f 15:%04.2f 16:%04.2f 17:%04.2f 18:%04.2f 19:%04.2f Sum:%05.1f Sens: %04.1f \n",//t: %d
+                   magnitudeBand[0] * nf,
+                   magnitudeBand[1] * nf,
+                   magnitudeBand[2] * nf,
+                   magnitudeBand[3] * nf,
+                   magnitudeBand[4] * nf,
+                   magnitudeBand[5] * nf,
+                   magnitudeBand[6] * nf,
+                   magnitudeBand[7] * nf,
+                   magnitudeBand[8] * nf,
+                   magnitudeBand[9] * nf,
+                   magnitudeBand[10] * nf,
+                   magnitudeBand[11] * nf,
+                   magnitudeBand[12] * nf,
+                   magnitudeBand[13] * nf,
+                   magnitudeBand[14] * nf,
+                   magnitudeBand[15] * nf,
+                   magnitudeBand[16] * nf,
+                   magnitudeBand[17] * nf,
+                   magnitudeBand[18] * nf,
+                   magnitudeBand[19] * nf,
+                   0,//magnitudeSum,
+                   0//sensitivityFactor_
+                   );*/
 }
