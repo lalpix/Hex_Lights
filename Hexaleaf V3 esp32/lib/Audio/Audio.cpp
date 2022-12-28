@@ -183,7 +183,7 @@ void newAudioReading(float *magnitudeBand, float *magnitudeBandWeightedMax)
         magnitudeSum += magnitudeSpectrumAvg_[i];
 
     }
-
+    //Serial.printf("mag_sum: %f\n", magnitudeSum);
     for (uint8_t bandIdx = 0; bandIdx < FREQ_BAND_COUNT; bandIdx++)
     {
         //Serial.printf("actual bandMag = %d\n", bandIdx);
@@ -216,37 +216,37 @@ void newAudioReading(float *magnitudeBand, float *magnitudeBandWeightedMax)
     const float s1 = 8.0f / 1024.0f;
     const float s2 = 1.0f - s1;
     sensitivityFactor_ =  min( (250.0f / *magnitudeBandWeightedMax) * s1 + sensitivityFactor_ * s2, kSensitivityFactorMax );
-    /*float nf;
+    // float nf;
 
-    if (fabs(magnitudeBand[1]) < 0.001f)
-    {
-        nf = 1.0f;
-    }
-    else
-    {
-        nf = 1.0f / magnitudeBand[1];
-    }
+    // if (fabs(magnitudeBand[1]) < 0.001f)
+    // {
+    //     nf = 1.0f;
+    // }
+    // else
+    // {
+    //     nf = 1.0f / magnitudeBand[1];
+    // }
     
-    Serial.printf("0:%04.2f 1:%04.2f 2:%04.2f 3:%04.2f 4:%04.2f 5:%04.2f 6:%04.2f 7:%04.2f 8:%04.2f 9:%04.2f 10:%04.2f 11:%04.2f 12:%04.2f 13:%04.2f 14:%04.2f 15:%04.2f 16:%04.2f 17:%04.2f 18:%04.2f 19:%04.2f \n", // t: %d
-                  magnitudeBand[0] * nf,
-                  magnitudeBand[1] * nf,
-                  magnitudeBand[2] * nf,
-                  magnitudeBand[3] * nf,
-                  magnitudeBand[4] * nf,
-                  magnitudeBand[5] * nf,
-                  magnitudeBand[6] * nf,
-                  magnitudeBand[7] * nf,
-                  magnitudeBand[8] * nf,
-                  magnitudeBand[9] * nf,
-                  magnitudeBand[10] * nf,
-                  magnitudeBand[11] * nf,
-                  magnitudeBand[12] * nf,
-                  magnitudeBand[13] * nf,
-                  magnitudeBand[14] * nf,
-                  magnitudeBand[15] * nf,
-                  magnitudeBand[16] * nf,
-                  magnitudeBand[17] * nf,
-                  magnitudeBand[18] * nf,
-                  magnitudeBand[19] * nf
-    );*/
+    // Serial.printf("0:%04.2f 1:%04.2f 2:%04.2f 3:%04.2f 4:%04.2f 5:%04.2f 6:%04.2f 7:%04.2f 8:%04.2f 9:%04.2f 10:%04.2f 11:%04.2f 12:%04.2f 13:%04.2f 14:%04.2f 15:%04.2f 16:%04.2f 17:%04.2f 18:%04.2f 19:%04.2f \n", // t: %d
+    //               magnitudeBand[0] ,// *nf,
+    //               magnitudeBand[1] ,// *nf,
+    //               magnitudeBand[2] ,// *nf,
+    //               magnitudeBand[3] ,// *nf,
+    //               magnitudeBand[4] ,// *nf,
+    //               magnitudeBand[5] ,// *nf,
+    //               magnitudeBand[6] ,// *nf,
+    //               magnitudeBand[7] ,// *nf,
+    //               magnitudeBand[8] ,// *nf,
+    //               magnitudeBand[9] ,// *nf,
+    //               magnitudeBand[10] ,// *nf,
+    //               magnitudeBand[11] ,// *nf,
+    //               magnitudeBand[12] ,// *nf,
+    //               magnitudeBand[13] ,// *nf,
+    //               magnitudeBand[14] ,// *nf,
+    //               magnitudeBand[15] ,// *nf,
+    //               magnitudeBand[16] ,// *nf,
+    //               magnitudeBand[17] ,// *nf,
+    //               magnitudeBand[18] ,// *nf,
+    //               magnitudeBand[19] //* nf
+    // );
 }

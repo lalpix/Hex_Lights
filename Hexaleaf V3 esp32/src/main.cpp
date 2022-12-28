@@ -76,7 +76,7 @@ void WifiSetup()
     // Create a message handler
     client.setCallback(messageHandler);
 
-    Serial.println("Connecting to AWS IOT");
+    Serial.println("Connecting_to_AWS_IOT");
 
     while (!client.connect(THINGNAME))
     {
@@ -86,7 +86,7 @@ void WifiSetup()
 
     if (!client.connected())
     {
-        Serial.println("AWS IoT Timeout!");
+        Serial.println("AWS_IoT_Timeout!");
         return;
     }
 
@@ -94,7 +94,7 @@ void WifiSetup()
     client.subscribe("Mode");
 
 
-    Serial.println("AWS IoT Connected!");
+    Serial.println("AWS_IoT_Connected!");
 }
 
 void setup()
@@ -112,10 +112,9 @@ void setup()
     hexController->init();
 
     hexController->change_mode(AudioFreqPool);
-    hexController->set_rainbow(0);
+    hexController->set_rainbow(1);
     hexController->set_fade(true);
     hexController->set_speed(1);
-    hexController->update();
     Serial.println("Setup DONE");
 
     delay(2000);
@@ -136,53 +135,56 @@ void loop()
     // ----- Beat detection -----
 
     // Maintain history of last three magnitude values of the bass band
-    beatHist_[kBeatDetectBand][0] = beatHist_[kBeatDetectBand][1];
-    beatHist_[kBeatDetectBand][1] = beatHist_[kBeatDetectBand][2];
-    beatHist_[kBeatDetectBand][2] = magnitudeBand[kBeatDetectBand] * kFreqBandAmp[kBeatDetectBand] * sensitivityFactor_;
+    beatHist_[kBeatDetectBandOffset][0] = beatHist_[kBeatDetectBandOffset][1];
+    beatHist_[kBeatDetectBandOffset][1] = beatHist_[kBeatDetectBandOffset][2];
+    beatHist_[kBeatDetectBandOffset][2] = magnitudeBand[kBeatDetectBandOffset] * kFreqBandAmp[kBeatDetectBandOffset] * sensitivityFactor_;
 
     float diff1 = beatHist_[1] - beatHist_[0];
     float diff2 = beatHist_[2] - beatHist_[1];
-
-    // Detect magnitude peak
     if (((diff1 >= kBeatThreshold) && (diff2 < 0)) || ((diff1 > 0) && (diff2 <= -kBeatThreshold)))
     {
-        Serial.printf("beat detected");
-        beatVisIntensity_ = 250;
-        }
-        else {
-            if ( beatVisIntensity_ >= 25 )
-                beatVisIntensity_ -= 25;
-        }
+        beatVisIntensity_[1] = 250;
+    }
+    else
+    {
+        if (beatVisIntensity_[1] >= 25)
+            beatVisIntensity_[1] -= 25;
+    }
+    // Detect magnitude peak
+   
      // ----- Update the Led strip -----
+    CRGB tmp=CRGB::Black;
+    hexController->fill_all_hex(tmp.setHSV(250,255, beatVisIntensity_[1]));
+    */
+    /*
+    if (kNumLeds <= 2 * FREQ_BAND_COUNT + 4)
+    {
+        // Show beat detection at the beginning of the strip
+        const uint8_t numBassLeds = (kNumLeds - FREQ_BAND_COUNT) / 2;
 
-        if (kNumLeds <= 2 * FREQ_BAND_COUNT + 4)
+        for (int i = 0; i < numBassLeds; i++)
         {
-            // Show beat detection at the beginning of the strip
-            const uint8_t numBassLeds = (kNumLeds - FREQ_BAND_COUNT) / 2;
+            ledStrip_[i].setHSV(250, 255, beatVisIntensity_[1]);
+        }
 
-            for (int i = 0; i < numBassLeds; i++)
-            {
-                ledStrip_[i].setHSV( 250, 255, beatVisIntensity_ );
-            }
+        // Show frequency intensities on the remaining Leds
+        const uint8_t colorStart = 30;
+        const uint8_t colorEnd = 210;
+        const uint8_t colorStep = (colorEnd - colorStart) / FREQ_BAND_COUNT;
 
-            // Show frequency intensities on the remaining Leds
-            const uint8_t colorStart = 30;
-            const uint8_t colorEnd   = 210;
-            const uint8_t colorStep = (colorEnd - colorStart) / FREQ_BAND_COUNT;
+        for (int k = 0; k < FREQ_BAND_COUNT; k++)
+        {
+            uint8_t color = colorStart + k * colorStep;
+            uint8_t lightness = min(int(magnitudeBand[k] * kFreqBandAmp[k] * sensitivityFactor_), 255);
 
-            for (int k = 0; k < FREQ_BAND_COUNT; k++)
-            {
-                uint8_t color = colorStart + k * colorStep;
-                uint8_t lightness = min( int(magnitudeBand[k] * kFreqBandAmp[k] * sensitivityFactor_), 255);
+            ledStrip_[k + numBassLeds].setHSV(color, 255, lightness);
+        }
 
-                ledStrip_[k+numBassLeds].setHSV(color, 255, lightness);
-            }
-
-            // Show beat detection at the end of the strip
-            for (int i = numBassLeds + FREQ_BAND_COUNT; i < kNumLeds; i++)
-            {
-                ledStrip_[i].setHSV( 250, 255, beatVisIntensity_ );
-            }
+        // Show beat detection at the end of the strip
+        for (int i = numBassLeds + FREQ_BAND_COUNT; i < kNumLeds; i++)
+        {
+            ledStrip_[i].setHSV(250, 255, beatVisIntensity_[1]);
+        }
         }
         else
         {
@@ -214,11 +216,11 @@ void loop()
             {
                 ledStrip_[i].setHSV( 250, 255, beatVisIntensity_ );
             }
-        }
+        }*/
 
         FastLED.show();
         
-        */
+    
    /*float nf;
 
     if (fabs(magnitudeBand[1]) < 0.001f)

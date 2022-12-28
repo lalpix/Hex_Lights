@@ -418,9 +418,7 @@ void Hex_controller::update()
         {
         case Stationar:
         {
-            // mySerial.println("stationar");
             fill_all_hex(clr_arr[0]);
-            // change = false;
             break;
         }
         case StationarOuter:
@@ -432,10 +430,6 @@ void Hex_controller::update()
                     if (!(points_of_contact[i][j]))
                     { // negated
                         nodes[i]->fill_side(clr_arr[0], leds, j);
-                        // mySerial.print("Set side: ");
-                        // mySerial.print(j);
-                        // mySerial.print(" in box ");
-                        // mySerial.println(i);
                     }
                 }
             }
@@ -519,7 +513,7 @@ void Hex_controller::update()
             {
                 fill_rainbow(vert_leds, VertCount, step_count);
                 // CRGB clr=clr.setHue(((step_count+i)*step)%255);
-                // fill_leds_on_Vert_lvl(i,vert_leds[i]);
+                fill_leds_on_Vert_lvl(i,vert_leds[i]);
             }
             step_count = (step_count > 255) ? 0 : step_count + 1;
             break;
@@ -536,7 +530,60 @@ void Hex_controller::update()
             break;
         }
         case AudioBeatReact:{
+            //long start = millis();
+            float magnitudeBand[FREQ_BAND_COUNT] = {0.0f};
+            float magnitudeBandWeightedMax = 0.0f;
 
+            newAudioReading(magnitudeBand, &magnitudeBandWeightedMax);
+            for (int i = 0; i < NUM_BOXES; i++)
+            {
+                int idx = i + kBeatDetectBandOffset;
+                
+                beatHist_[idx][hist_ptr] = magnitudeBand[idx] * kFreqBandAmp[idx] * sensitivityFactor_;
+                float histAVG = 0;
+                for (int h = 0; h < HIST_NUM; h++)
+                {
+                    histAVG += beatHist_[idx][h];
+                    // if(i==0){
+                    // Serial.printf("h%d: %f ", i, beatHist_[idx][h]);
+                    // }
+                   
+                }
+                histAVG = histAVG / (float)HIST_NUM;
+
+                Serial.printf("now:%f avg:%f\n", beatHist_[idx][hist_ptr], histAVG);
+                
+                if(beatHist_[idx][hist_ptr]>histAVG*BeatThresholdMultyplier)
+                {
+                    //Serial.printf("beat detected");
+                    beatVisIntensity_[i] = 250;
+                    }
+                    //
+                    else
+                    {
+                        if (beatVisIntensity_[i] >= 150)
+                            beatVisIntensity_[i] -= 20;
+                        if (beatVisIntensity_[i] >= 50)
+                            beatVisIntensity_[i] -= 5;
+                        if (beatVisIntensity_[i] >= 20)
+                            beatVisIntensity_[i] -= 1;
+                    }
+                    if(rainbow!=0){
+                        nodes[i]->fill_hex(CHSV((255 / NUM_BOXES) * i, 255, beatVisIntensity_[i]), leds);
+                    }else{
+
+                    }
+                    
+            }
+
+            hist_ptr--;
+            if (hist_ptr <0)
+            {
+                hist_ptr = HIST_NUM;
+            }
+            // long time = millis() - start;
+            // Serial.printf("time:%lu\n", time);
+            break;
         } 
         case AudioFreqPool:
         {
@@ -548,41 +595,6 @@ void Hex_controller::update()
             newAudioReading(magnitudeBand, &magnitudeBandWeightedMax);
             // mySerial.println("Audio reading DONE");
 
-            /*float nf;
-
-            if (fabs(magnitudeBand[1]) < 0.001f)
-            {
-                nf = 1.0f;
-            }
-            else
-            {
-                nf = 1.0f / magnitudeBand[1];
-            }
-
-            Serial.printf("0:%04.2f 1:%04.2f 2:%04.2f 3:%04.2f 4:%04.2f 5:%04.2f 6:%04.2f 7:%04.2f 8:%04.2f 9:%04.2f 10:%04.2f 11:%04.2f 12:%04.2f 13:%04.2f 14:%04.2f 15:%04.2f 16:%04.2f 17:%04.2f 18:%04.2f 19:%04.2f Sum:%05.1f Sens: %04.1f \n", // t: %d
-                          magnitudeBand[0] * nf,
-                          magnitudeBand[1] * nf,
-                          magnitudeBand[2] * nf,
-                          magnitudeBand[3] * nf,
-                          magnitudeBand[4] * nf,
-                          magnitudeBand[5] * nf,
-                          magnitudeBand[6] * nf,
-                          magnitudeBand[7] * nf,
-                          magnitudeBand[8] * nf,
-                          magnitudeBand[9] * nf,
-                          magnitudeBand[10] * nf,
-                          magnitudeBand[11] * nf,
-                          magnitudeBand[12] * nf,
-                          magnitudeBand[13] * nf,
-                          magnitudeBand[14] * nf,
-                          magnitudeBand[15] * nf,
-                          magnitudeBand[16] * nf,
-                          magnitudeBand[17] * nf,
-                          magnitudeBand[18] * nf,
-                          magnitudeBand[19] * nf,
-                          0, // magnitudeSum,
-                          0  // sensitivityFactor_
-            );*/
             int poolsForOneHex = FREQ_BAND_COUNT / NUM_BOXES;
             for (int i = 0; i < NUM_BOXES; i++)
             {
