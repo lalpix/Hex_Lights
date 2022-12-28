@@ -541,7 +541,7 @@ void Hex_controller::update()
                 
                 beatHist_[idx][hist_ptr] = magnitudeBand[idx] * kFreqBandAmp[idx] * sensitivityFactor_;
                 float histAVG = 0;
-                for (int h = 0; h < HIST_NUM; h++)
+                for (int h = 0; h < HIST_NUM_BEAT; h++)
                 {
                     histAVG += beatHist_[idx][h];
                     // if(i==0){
@@ -549,7 +549,7 @@ void Hex_controller::update()
                     // }
                    
                 }
-                histAVG = histAVG / (float)HIST_NUM;
+                histAVG = histAVG / (float)HIST_NUM_BEAT;
 
                 Serial.printf("now:%f avg:%f\n", beatHist_[idx][hist_ptr], histAVG);
                 
@@ -579,7 +579,7 @@ void Hex_controller::update()
             hist_ptr--;
             if (hist_ptr <0)
             {
-                hist_ptr = HIST_NUM;
+                    hist_ptr = HIST_NUM_BEAT;
             }
             // long time = millis() - start;
             // Serial.printf("time:%lu\n", time);
@@ -607,33 +607,34 @@ void Hex_controller::update()
                 }
                 bandMagHistory[i][hist_ptr] = bandMagAvg;
                 hist_ptr++;
-                if (hist_ptr >= HIST_NUM)
+                if (hist_ptr >= HIST_NUM_FREQ)
                 {
                     hist_ptr = 0;
                 }
                 
                 float histAvgMag = 0;
-                for (int h = 0; h < HIST_NUM;h++){
+                for (int h = 0; h < HIST_NUM_FREQ; h++)
+                {
                     histAvgMag += bandMagHistory[i][h];
                 }
-                histAvgMag = histAvgMag / ((float)HIST_NUM);
+                histAvgMag = histAvgMag / ((float)HIST_NUM_FREQ);
                 int histMult = 100 * (bandMagAvg / histAvgMag);
                 uint8_t lightness = min((int)(bandMagAvg  * histMult), 255);
-                nodes[i]->fill_hex(CHSV(20 * i, 255, lightness), leds);
+                //nodes[i]->fill_hex(CHSV(20 * i, 255, lightness), leds);
+                uint8_t ledNum = lightness / (255 / 12);
+                nodes[i]
+                    ->fill_n_hor_lines(CRGB::Green, CRGB::Red, leds, ledNum);
             }
             break;
         }
         default:
             // here test code
-            fill_leds_on_Vert_lvl(2, CRGB::Red);
-            fill_leds_on_Vert_lvl(3, CRGB::Green);
-            fill_leds_on_Vert_lvl(4, CRGB::Blue);
-            fill_leds_on_Vert_lvl(14, CRGB::Blue);
-
-            fill_leds_on_Vert_lvl(15, CRGB::Red);
+            nodes[0]
+                ->fill_n_leds(CHSV(100, 255, 250), leds, LEDS_IN_BOX);
+            // mySerial.println("ERROR: False mode");
 
             break;
-            // mySerial.println("ERROR: False mode");
+            
         }
         if (!fill_done && fill_mode != Not_fill_mode)
         {

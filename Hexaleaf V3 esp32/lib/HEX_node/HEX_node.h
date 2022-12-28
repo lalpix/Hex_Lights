@@ -29,8 +29,11 @@ class Hexnode
     CRGB *fill_side(CRGB clr, CRGB *leds, uint8_t n);
     CRGB *fill_vert_line(CRGB clr, CRGB *leds, uint8_t line);
     CRGB *fill_hor_line(CRGB clr, CRGB *leds, uint8_t line);
+    CRGB *fill_n_hor_lines(CRGB lowClr, CRGB highClr, CRGB *leds, uint8_t max);
     CRGB *fill_hex(CRGB clr, CRGB *leds);
     CRGB *fill_one_led(CRGB clr, CRGB *leds, uint8_t n);
+    CRGB *fill_n_leds(CRGB clr, CRGB *leds, uint8_t n);
+
     /*
     CRGB* ledscompute_fade_vector()
     {

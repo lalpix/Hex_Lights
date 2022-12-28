@@ -123,7 +123,7 @@ void setup()
 void loop()
 {
     // delay( 5000 );
-    client.loop();
+    //client.loop();
     hexController->update();
     /*
     float magnitudeBand[FREQ_BAND_COUNT] = {0.0f};

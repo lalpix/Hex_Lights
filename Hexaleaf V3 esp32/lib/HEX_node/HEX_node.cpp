@@ -35,50 +35,82 @@ CRGB* Hexnode::fill_hor_line(CRGB clr,CRGB* leds,uint8_t line){
   }
   return leds;
 }
-CRGB* Hexnode::fill_hex(CRGB clr,CRGB* leds){
-  for(int i = ledStart;i<(ledStart+LEDS_IN_BOX);i++){
-    leds[i] = clr;
-    }
-  return leds;
-  color=clr;
-}
-CRGB* Hexnode::fill_one_led(CRGB clr,CRGB* leds,uint8_t n){
-  if(n<LEDS_IN_BOX)
-    leds[ledStart+n]=color;
-  return leds;
-}
-    /*
-    CRGB* Hexnode::ledscompute_fade_vector()
-    {
-        fadeVector.r = (float)(colorTo.r - color.r) / (float)fadeTimeMs;
-        fadeVector.g = (float)(colorTo.g - color.g) / (float)fadeTimeMs;
-        fadeVector.b = (float)(colorTo.b - color.b) / (float)fadeTimeMs;
-    }
-    CRGB* Hexnode::ledscolor_update()
-    {
-        unsigned long delta_ms = millis() - lastDrawTimer;
-        lastDrawTimer = millis();
-        int16_t r = color.r + (fadeVector.r * delta_ms);
-        int16_t g = color.g + (fadeVector.g * delta_ms);
-        int16_t b = color.b + (fadeVector.b * delta_ms);
-        (r >= 255) ? color.r = 255 : (r <= 0) ? color.r = 0 : color.r = r;
-        (g >= 255) ? color.g = 255 : (g <= 0) ? color.g = 0 : color.g = g;
-        (b >= 255) ? color.b = 255 : (b <= 0) ? color.b = 0 : color.b = b;
-    }
-    int Hexnode::draw(){
-      if (animating)
-        {
-            color_update();
-            if (millis() - startDrawTimer >= fadeTimeMs)
-            {
-                animating = false;
-                peakTimer = millis();
-            }
-        }
 
-      for (uint16_t ledPos = ledStart; ledPos <= ledEnd; ledPos++)
+CRGB *Hexnode::fill_n_hor_lines(CRGB lowClr,CRGB highClr, CRGB *leds, uint8_t max)
+{
+  int rowNum = LED_IN_SIDE * 2 + 2;
+  int scaleCoef = 255 / rowNum;
+  for (int i = 0; i < max;i++){
+      CRGB clr = lowClr.scale8(scaleCoef * (rowNum - i)) + highClr.scale8(i*scaleCoef);
+      fill_hor_line(clr, leds, i);
+  }
+  return leds;
+}
+  
+CRGB *Hexnode::fill_hex(CRGB clr, CRGB * leds)
+  {
+      for (int i = ledStart; i < (ledStart + LEDS_IN_BOX); i++)
       {
-          leds[ledPos] = color;
+        leds[i] = clr;
       }
-      return 0;
-    }*/ 
+      return leds;
+      color = clr;
+  }
+  CRGB *Hexnode::fill_one_led(CRGB clr, CRGB * leds, uint8_t n)
+  {
+      if (n < LEDS_IN_BOX)
+        leds[ledStart + n] = color;
+      return leds;
+  }
+  CRGB *Hexnode::fill_n_leds(CRGB clr, CRGB * leds, uint8_t n)
+  {
+      Serial.printf("filling %d leds\n", n);
+      for (int i = 0; i < LEDS_IN_BOX; i++)
+      {
+        if (i < n)
+        {
+          leds[ledStart + i] = color;
+        }
+        else
+        {
+
+          leds[ledStart + i] = CRGB::Black;
+        }
+      }
+      return leds;
+  }
+  /*
+  CRGB* Hexnode::ledscompute_fade_vector()
+  {
+      fadeVector.r = (float)(colorTo.r - color.r) / (float)fadeTimeMs;
+      fadeVector.g = (float)(colorTo.g - color.g) / (float)fadeTimeMs;
+      fadeVector.b = (float)(colorTo.b - color.b) / (float)fadeTimeMs;
+  }
+  CRGB* Hexnode::ledscolor_update()
+  {
+      unsigned long delta_ms = millis() - lastDrawTimer;
+      lastDrawTimer = millis();
+      int16_t r = color.r + (fadeVector.r * delta_ms);
+      int16_t g = color.g + (fadeVector.g * delta_ms);
+      int16_t b = color.b + (fadeVector.b * delta_ms);
+      (r >= 255) ? color.r = 255 : (r <= 0) ? color.r = 0 : color.r = r;
+      (g >= 255) ? color.g = 255 : (g <= 0) ? color.g = 0 : color.g = g;
+      (b >= 255) ? color.b = 255 : (b <= 0) ? color.b = 0 : color.b = b;
+  }
+  int Hexnode::draw(){
+    if (animating)
+      {
+          color_update();
+          if (millis() - startDrawTimer >= fadeTimeMs)
+          {
+              animating = false;
+              peakTimer = millis();
+          }
+      }
+
+    for (uint16_t ledPos = ledStart; ledPos <= ledEnd; ledPos++)
+    {
+        leds[ledPos] = color;
+    }
+    return 0;
+  }*/
