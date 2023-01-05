@@ -28,7 +28,7 @@ private:
     CRGB clr_arr[4];
     uint8_t maxBrightness;
     int16_t rainbow;
-    bool fade;
+    int16_t fade;
     bool fill_done;
     bool change;
     Mode mode;
@@ -45,7 +45,7 @@ private:
 
 public:
     Hex_controller() : clr_arr{(CRGB::Red), (CRGB::Lime), (CRGB::Pink), (CRGB::DarkKhaki)},
-                       fade(false),
+                       fade(0),
                        rainbow(0),
                        maxBrightness(60), // 0--100
                        mode(Stationar),
@@ -247,7 +247,7 @@ void Hex_controller::calculate_ledCount_inDir()
 // basic fill functions
 void Hex_controller::fill_leds_on_Vert_lvl(uint8_t lvl, CRGB clr)
 {
-    mySerial.printf("fill vert lvl %d\n", lvl);
+    //mySerial.printf("fill vert lvl %d\n", lvl);
     for (uint8_t i = 0; i < NUM_BOXES; i++)
     {
         int line_lvl = lvl - (10 * position[i][0]);
@@ -353,6 +353,12 @@ void Hex_controller::change_mode(Mode m)
     preset = 0;
     step_count = 0;
     step = 1;
+    if(mode == Mode::AudioBeatReact || mode==Mode::AudioFreqPool){
+        drawEveryNthMs = 1;
+        fade = 70;
+    }else{
+        drawEveryNthMs = 100;
+    }
 }
 
 void Hex_controller::change_fill_mode(FillMode new_fill_mode)
@@ -423,15 +429,9 @@ void Hex_controller::update()
         }
         case StationarOuter:
         {
-            for (int i = 0; i < NUM_BOXES; i++)
+            for (int i = 0; i < outer_led_num; i++)
             {
-                for (int j = 0; j < 6; j++)
-                {
-                    if (!(points_of_contact[i][j]))
-                    { // negated
-                        nodes[i]->fill_side(clr_arr[0], leds, j);
-                    }
-                }
+                leds[outer_led_adr[i]] = clr_arr[0];
             }
             break;
         }
@@ -464,12 +464,9 @@ void Hex_controller::update()
         }
         case RandColorRandHex:
         {
-            if (step_count > drawEveryNthMs)
-            {
-                uint8_t idx = rand() % NUM_BOXES;
-                nodes[idx]->fill_hex(CHSV(random8(), random8(), 255), leds);
-            }
-            step_count++;
+            
+            uint8_t idx = rand() % NUM_BOXES;
+            nodes[idx]->fill_hex(CHSV(random8(), random8(), 255), leds);  
             break;
         }
         case PresetAnim:
@@ -551,7 +548,7 @@ void Hex_controller::update()
                 }
                 histAVG = histAVG / (float)HIST_NUM_BEAT;
 
-                Serial.printf("now:%f avg:%f\n", beatHist_[idx][hist_ptr], histAVG);
+                //Serial.printf("now:%f avg:%f\n", beatHist_[idx][hist_ptr], histAVG);
                 
                 if(beatHist_[idx][hist_ptr]>histAVG*BeatThresholdMultyplier)
                 {
@@ -629,9 +626,8 @@ void Hex_controller::update()
         }
         default:
             // here test code
-            nodes[0]
-                ->fill_n_leds(CHSV(100, 255, 250), leds, LEDS_IN_BOX);
-            // mySerial.println("ERROR: False mode");
+            //nodes[0]->fill_n_leds(CHSV(100, 255, 250), leds, LEDS_IN_BOX);
+            mySerial.println("ERROR: False mode");
 
             break;
             
@@ -704,11 +700,12 @@ void Hex_controller::update()
             step_count += step;
         }
         lastDrew = millis();
-        if (fade)
+        
+        if (fade>0)
         {
             for (int i = 0; i < TOTAL_LEDS; i++)
-            { // use maxBrightness
-                leds[i].fadeToBlackBy(maxBrightness);
+            { 
+                leds[i].fadeToBlackBy(fade);
             }
         }
         FastLED.show();
