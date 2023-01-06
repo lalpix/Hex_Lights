@@ -12,7 +12,6 @@
 
 #include "keys.h"
 #include "structs.h"
-#include "HEX_node.h"
 #include "HEX_controller.h"
 
 // esp_rmaker_device_t *device = esp_rmaker_device_create("Light", NULL, NULL);
@@ -38,7 +37,8 @@ int period = 5000;
 Mode m = Stationar;
 CRGB ledStrip_[kNumLeds];
 bool power = true;
-
+bool localRun = true;
+WiFiManager wm;
 WiFiClientSecure net = WiFiClientSecure();
 PubSubClient client(net);
 
@@ -106,11 +106,11 @@ void WifiSetup()
 {
     Serial.println("connecting to WiFi\n");
 
-    WiFiManager wm;
     // wm.resetSettings();
     wm.setDebugOutput(false);
-    //WiFiManagerParameter custom_text("btn", "ender mode num here to start offline", "", 1);
-    //wm.addParameter(&custom_text);
+    //wm.setConfigPortalBlocking(false);
+    //wm.setConfigPortalTimeout(60);
+
     leds[0] = CRGB::Red;
     hexController->show();
     WiFi.mode(WIFI_STA);
@@ -118,6 +118,11 @@ void WifiSetup()
     if (res)
     {
         Serial.println("WiFi connected\n");
+        localRun = false;
+    }else{
+        Serial.println("Wifi timeout - running localy");
+        localRun = true;
+        return;
     }
 
     leds[0] = CRGB::Green;
@@ -163,7 +168,7 @@ void WifiSetup()
 
 void setup()
 {
-
+    pinMode(0, INPUT_PULLUP);
     Serial.begin(115200);
     delay(2000); // power-up safety delay
     Serial.println("> Setup....");
@@ -171,11 +176,9 @@ void setup()
     hexController->set_serial(Serial);
     hexController->init();
     WifiSetup();
-    setupI2Smic();
-    setupSpectrumAnalysis();
     hexController->set_rainbow(1);
     hexController->set_fade(30);
-    hexController->change_mode(AudioFreqPool);
+    hexController->change_mode(AudioBeatReact);
     Serial.println("Setup DONE");
 
     delay(2000);
@@ -183,8 +186,13 @@ void setup()
 
 void loop()
 {
-    // delay( 5000 );
-    client.loop();
+    
+    if(!localRun){
+
+        // delay( 5000 );
+        client.loop();
+    }
+    
     if (power)
     {
         hexController->update();

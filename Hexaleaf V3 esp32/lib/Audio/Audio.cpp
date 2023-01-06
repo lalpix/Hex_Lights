@@ -65,7 +65,12 @@ bool setupSpectrumAnalysis()
 
     return success;
 }
-
+void setupAudioData() {
+    raw_samples = new int16_t[FFT_SAMPLE_COUNT];
+    fftDataReal_ = new double[FFT_SAMPLE_COUNT];
+    fftDataImag_ = new double[FFT_SAMPLE_COUNT];
+    fft_ =arduinoFFT(fftDataReal_, fftDataImag_, FFT_SAMPLE_COUNT, kFFT_SamplingFreq); // Create FFT object
+}
 bool setupI2Smic()
 {
     esp_err_t i2sErr;
