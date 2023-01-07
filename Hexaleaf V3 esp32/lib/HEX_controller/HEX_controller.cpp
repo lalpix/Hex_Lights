@@ -42,77 +42,36 @@ void Hex_controller::calculate_outer_leds()
 }
 void Hex_controller::create_outer_path()
 {
-    uint16_t led_count_1 = 0;
-    uint16_t led_count_2 = 0;
-    uint8_t start_1 = 0;
-    uint8_t end_1 = 0;
-    uint8_t start_2 = 0;
-    uint8_t end_2 = 0;
-    //uint8_t path[NUM_BOXES][3][LEDS_IN_BOX];
-    for (int i = 0; i < NUM_BOXES; i++)
+    uint16_t box_i = 0;
+    uint8_t side_i = 0;
+    uint32_t path_i = 0;
+    int16_t start_side = -1;
+    while (1)
     {
-        Hexnode *tmp = nodes[i];
-        start_1 = 0;
-        end_1 = 0;
-        start_2 = 0;
-        end_2 = 0;
-        //first make for each hex paths.
-        // than start path. if path ends. look at next point of contact.
-        // path will continew on that contacted hex on side (contact +1)
-
-        // check all sides for contact
-        for (int j = 0; j < 6; j++)
+        // if box has this side free, add to path.
+        if (nodes[box_i]->connectionPoints[side_i] == 0)
         {
-            if (tmp->connectionPoints[j] != 0)
-            { // if contact
-                // TODO change the way i count it
-                // doesnt work for 3+contact points
-                if (tmp->connectionPoints[j] > i)
-                { // its contanct with next box
-
-                    end_1 = j;
-                    start_2 = j + 1;
-                }
-                else
-                { // its contantc with previous box
-                    end_2 = j;
-                    start_1 = j + 1;
-                }
-            }
-        }
-        mySerial.printf("box=%d 1s:%d 1e:%d 2s:%d 2e:%d\n", i, start_1, end_1, start_2, end_2);
-        // add lets to outer leds
-
-        // sequence 1 - to the end
-        if (start_1 > end_1)
-        {
-            end_1 += 6;
-        }
-        for (int a = start_1; a < end_1; a++)
-        {
-            int led_pos = tmp->side_start_led(a % 6);
-            // mySerial.printf("seq1 adding side %d\n", a % 6);
-            for (int l = 0; l < LED_IN_SIDE; l++)
+            if (box_i == 0 && side_i == start_side)
             {
-                outer_led_adr[led_count_1] = led_pos + l;
-                led_count_1++;
+                break;
             }
-        }
-        // sequence 2 - coming back
-        if (start_2 > end_2)
-        {
-            end_2 += 6;
-        }
-        for (int a = end_2 - 1; a >= start_2; a--)
-        {
-
-            int led_pos = tmp->side_start_led(a % 6);
-            // mySerial.printf("seq2 adding side %d\n", a % 6);
-            for (int l = 0; l < LED_IN_SIDE; l++)
+            // Serial.printf("adding to path side %d of box %d\n", side_i, box_i);
+            for (int i = 0; i < LED_IN_SIDE; i++)
             {
-                outer_led_adr[(outer_led_num - 1) - led_count_2] = led_pos + ((LED_IN_SIDE - 1) - l);
-                led_count_2++;
+                outer_led_adr[path_i] = nodes[box_i]->side_start_led(side_i) + i;
+                path_i++;
             }
+
+            if (start_side == -1)
+            {
+                start_side = side_i;
+            }
+            side_i = (side_i + 1) % 6;
+        }
+        else
+        {
+            box_i = nodes[box_i]->connectionPoints[side_i] - 1;
+            side_i = (side_i + 3 + 1) % 6;
         }
     }
 }
@@ -146,9 +105,9 @@ void Hex_controller::calculate_horz_vert_vals()
     HorzMax = 2 + 2 * LED_IN_SIDE + HorzMax * 6;
     VertMin = VertMin * (2 * LED_IN_SIDE);
     VertMax = 3 * LED_IN_SIDE + VertMax * (LED_IN_SIDE * 2) + 1;
-    // HorzCount = +(HorzMax - HorzMin) * (LED_IN_SIDE + 1);
-    // VertCount = 3 * LED_IN_SIDE + (VertMax - VertMin) * (LED_IN_SIDE * 2) + 1;
-    mySerial.printf(" min horz-%d verz-%d max horz-%d verz-%d\n", HorzMin, VertMin, HorzMax, VertMax);
+    HorzCount = HorzMax - HorzMin;
+    VertCount = VertMax - VertMin;
+    // mySerial.printf(" min horz-%d verz-%d max horz-%d verz-%d\n", HorzMin, VertMin, HorzMax, VertMax);
 }
 // basic fill functions
 void Hex_controller::fill_leds_on_Vert_lvl(int16_t lvl, CRGB clr)

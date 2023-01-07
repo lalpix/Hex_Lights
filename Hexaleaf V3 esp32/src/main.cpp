@@ -168,9 +168,9 @@ void setup()
     hexController->set_serial(Serial);
     hexController->init();
     // WifiSetup();
-    hexController->set_rainbow(0);
-    hexController->change_mode(StationarOuter);
-    hexController->set_pre_anim(5);
+    hexController->set_rainbow(1);
+    hexController->change_mode(RotationOuter);
+    //hexController->set_pre_anim(5);
     hexController->set_fade(100);
     Serial.println("Setup DONE");
 
