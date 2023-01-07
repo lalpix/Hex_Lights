@@ -18,24 +18,11 @@
 /* ----- Fastled constants ----- */
 
 const long wifiTimeout = 20000;
-const uint8_t kPinLedStrip = 22; // M5StickC grove port, yellow cable
-
-const uint8_t kNumLeds = 150;
-
-const uint8_t kLedStripBrightness = 150;
+String topicArray[] = {"mode", "speed", "anim", "fade", "power", "brightness"};
 
 Hex_controller *hexController;
-String topic = "";
-String payload = "";
-String last_payload = "";
-int red = 100;
-int green = 100;
-int blue = 0;
-long t = 0;
-long last_ch = 0;
 int period = 5000;
 Mode m = Stationar;
-CRGB ledStrip_[kNumLeds];
 bool power = true;
 bool localRun = true;
 WiFiManager wm;
@@ -56,7 +43,7 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
     Serial.println(msg);
     if (strstr(topic, "power"))
     {
-        if (strstr((char*)payload,"off"))
+        if (strstr((char *)payload, "off"))
         {
             Serial.print("power off");
             power = false;
@@ -100,6 +87,12 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
             hexController->set_fade(s);
             Serial.printf("fade is now %d\n", s);
         }
+        else if (strstr(topic, "brightness"))
+        {
+            int s = atoi((char *)payload);
+            hexController->set_fade(s);
+            Serial.printf("brightness is now %d\n", s);
+        }
     }
 }
 void WifiSetup()
@@ -108,28 +101,26 @@ void WifiSetup()
 
     // wm.resetSettings();
     wm.setDebugOutput(false);
-    //wm.setConfigPortalBlocking(false);
-    //wm.setConfigPortalTimeout(60);
 
-    leds[0] = CRGB::Red;
+    hexController->fill_one_side_one_hex(CRGB::Red, 0, 0);
     hexController->show();
     WiFi.mode(WIFI_STA);
     bool res = wm.autoConnect("Hexaleaf");
     if (res)
     {
         Serial.println("WiFi connected\n");
+        hexController->fill_one_side_one_hex(CRGB::Green, 0, 0);
+        hexController->show();
         localRun = false;
-    }else{
+    }
+    else
+    {
         Serial.println("Wifi timeout - running localy");
         localRun = true;
         return;
     }
-
-    leds[0] = CRGB::Green;
+    hexController->fill_one_side_one_hex(CRGB::Red, 0, 1);
     hexController->show();
-    leds[1] = CRGB::Red;
-    hexController->show();
-
     net.setCACert(AWS_CERT_CA);
     net.setCertificate(AWS_CERT_CRT);
     net.setPrivateKey(AWS_CERT_PRIVATE);
@@ -147,7 +138,8 @@ void WifiSetup()
         Serial.print(".");
         delay(100);
     }
-
+    hexController->fill_one_side_one_hex(CRGB::Green, 0, 1);
+    hexController->show();
     if (!client.connected())
     {
         Serial.println("AWS_IoT_Timeout!");
@@ -155,14 +147,14 @@ void WifiSetup()
     }
 
     // Subscribe to a topic
-    client.subscribe("mode");
-    client.subscribe("speed");
-    client.subscribe("anim");
-    client.subscribe("fade");
-    client.subscribe("power");
+    for (int i = 0; i < topicArray->length(); i++)
+    {
+        // not tested
+        char tmp[topicArray[i].length()];
+        topicArray[i].toCharArray(tmp, topicArray[i].length());
+        client.subscribe(tmp);
+    }
 
-    leds[1] = CRGB::Green;
-    hexController->show();
     Serial.println("AWS_IoT_Connected!");
 }
 
@@ -175,10 +167,11 @@ void setup()
     hexController = new Hex_controller();
     hexController->set_serial(Serial);
     hexController->init();
-    WifiSetup();
-    hexController->set_rainbow(1);
-    hexController->set_fade(30);
-    hexController->change_mode(AudioBeatReact);
+    // WifiSetup();
+    hexController->set_rainbow(0);
+    hexController->change_mode(StationarOuter);
+    hexController->set_pre_anim(5);
+    hexController->set_fade(100);
     Serial.println("Setup DONE");
 
     delay(2000);
@@ -186,18 +179,17 @@ void setup()
 
 void loop()
 {
-    
-    if(!localRun){
 
-        // delay( 5000 );
+    if (!localRun)
+    {
         client.loop();
     }
-    
     if (power)
     {
         hexController->update();
-    }else{
+    }
+    else
+    {
         hexController->fill_all_hex(CRGB::Black);
-        hexController->show();
     }
 }

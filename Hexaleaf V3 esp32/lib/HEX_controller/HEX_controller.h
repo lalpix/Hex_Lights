@@ -7,18 +7,25 @@
 #include "HEX_node.h"
 #include "Audio.h"
 
-static CRGB leds[TOTAL_LEDS];
+// static CRGB leds[TOTAL_LEDS];
 static uint16_t outer_led_adr[TOTAL_LEDS];
 static int outer_led_num;
 // p
 // first-x(-left/right), second-y(up/down)
-static int8_t position[NUM_BOXES][2] = {{0, 0}, {1, 1}, {2, 0}, {3, 1}, {3, 3}};
+static int8_t position[NUM_BOXES][2] = {{0, 0}, {1, 1}, {2, 0}, {3, -1}, {3, 1}};
 static uint8_t points_of_contact[NUM_BOXES][6]; // nth bit will tell if nth side is in contact
-
-static FillMode preset1[] = {Fill_by_lines_fLeft, Fill_by_lines_fRight};                      // left-right
-static FillMode preset2[] = {Fill_by_lines_fTop, Fill_by_lines_fBottom};                       // top-bottom
-static FillMode preset3[] = {Fill_by_lines_meet_in_midle_TB, Fill_by_lines_meet_in_midle_LR}; // middle meeting
-static FillMode preset4[] = {Fill_by_rotation_fBottom, Fill_by_rotation_fTop};                // rotation
+// left-right
+static int preset1[] = {Fill_by_lines_fLeft, Fill_by_lines_fRight};
+// top-bottom
+static int preset2[] = {Fill_by_lines_fTop, Fill_by_lines_fBottom};
+// middle meeting
+static int preset3[] = {Fill_by_lines_meet_in_midle_TB, Fill_by_lines_meet_in_midle_LR};
+// rotation
+static int preset4[] = {Fill_by_rotation_fBottom, Fill_by_rotation_fTop};
+// From all sides sequentially
+static int preset5[] = {Fill_by_lines_fTop, Fill_by_lines_fLeft, Fill_by_lines_fBottom, Fill_by_lines_fRight}; 
+static int* presets[] = {preset1, preset2, preset3, preset4, preset5};
+static int preset_lenght[]={sizeof(preset1) / sizeof(FillMode), sizeof(preset2) / sizeof(FillMode), sizeof(preset3) / sizeof(FillMode), sizeof(preset4) / sizeof(FillMode), sizeof(preset5) / sizeof(FillMode)};
 
 class Hex_controller
 {
@@ -28,27 +35,26 @@ private:
     int16_t rainbow;
     int16_t fade;
     bool fill_done;
-    bool change;
     Mode mode;
     FillMode fill_mode;
     int8_t step;
     int8_t HorzCount, VertCount;
-    uint16_t step_count;
+    int8_t HorzMax, HorzMin, VertMax, VertMin;
+    int32_t step_count;
     uint16_t drawEveryNthMs;
     uint32_t lastDrew;
     Hexnode *nodes[NUM_BOXES];
     uint8_t animation_step;
     uint8_t preset;
     HardwareSerial mySerial;
-    
+    CRGB leds[TOTAL_LEDS];
 
 public:
-    Hex_controller() : clr_arr{(CRGB::Red), (CRGB::Lime), (CRGB::Pink), (CRGB::DarkKhaki)},
+    Hex_controller() : clr_arr{(CRGB::Red), (CRGB::Lime), (CRGB::Blue), (CRGB::DarkKhaki)},
                        fade(0),
                        rainbow(0),
-                       maxBrightness(60), // 0--100
+                       maxBrightness(UINT8_MAX),
                        mode(Stationar),
-                       change(true),
                        lastDrew(0),
                        fill_done(true),
                        fill_mode(Fill_by_lines_fTop),
@@ -71,26 +77,30 @@ public:
     {
         calculate_outer_leds();
         create_outer_path();
-        calculate_ledCount_inDir();
-        //Audio init
+        calculate_horz_vert_vals();
+        // Audio init
         setupAudioData();
         setupI2Smic();
         setupSpectrumAnalysis();
+        fill_all_hex(CRGB::Black);
     }
+    void next_mode();
     void calculate_outer_leds();
     void create_outer_path();
-    void calculate_ledCount_inDir();
+    void calculate_horz_vert_vals();
+    void count_preset_lenghts();
     // basic fill functions
-    void fill_leds_on_Vert_lvl(uint8_t lvl, CRGB clr);
-    void fill_leds_on_Hor_lvl(uint8_t lvl, CRGB clr);
+    void fill_leds_on_Vert_lvl(int16_t lvl, CRGB clr);
+    void fill_leds_on_Hor_lvl(int16_t lvl, CRGB clr);
     void fill_same_dir_sides(CRGB clr, int direc);
     void fill_all_hex(CRGB clr);
     void fill_one_led_all_hex(CRGB clr, uint8_t n);
-    // user input
+    void fill_one_side_one_hex(CRGB clr, uint8_t hex,uint8_t dir);
+        // user input
     void set_pre_anim(uint8_t n);
     void set_speed(uint16_t spd);
     void set_color(CRGB clr, int idx);
-    void set_brigtness(uint8_t b);
+    void set_brightness(uint8_t b);
     void set_serial(HardwareSerial &ser);
     void set_fade(bool f);
     void set_rainbow(int r);
@@ -100,6 +110,5 @@ public:
     void printCRGB(CRGB clr);
     void update();
 };
-
 
 #endif
