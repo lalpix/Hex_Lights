@@ -165,7 +165,7 @@ void setup()
     hexController->init();
     // WifiSetup();
     hexController->set_rainbow(1);
-    hexController->change_mode(RandColorRandHex);
+    hexController->change_mode(Stationar);
     hexController->set_brightness(255);
     //hexController->set_pre_anim(2);
     //hexController->set_fade(20);

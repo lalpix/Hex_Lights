@@ -58,7 +58,7 @@ public:
                        lastDrew(0),
                        fill_done(true),
                        fill_mode(Fill_by_lines_fTop),
-                       drawEveryNthMs(200),
+                       drawEveryNthMs(100),
                        mySerial(0)
     {
         step = 1;

@@ -159,7 +159,7 @@ void Hex_controller::fill_one_side_one_hex(CRGB clr, uint8_t hex, uint8_t dir)
 // user input
 void Hex_controller::set_pre_anim(uint8_t n)
 {
-    Serial.printf("setting anim%d\n",n);
+    //Serial.printf("setting anim%d\n",n);
     mode = PresetAnim;
     fill_done = true;
     preset = n;
@@ -203,10 +203,11 @@ void Hex_controller::set_rainbow(int r)
 // internal functions
 void Hex_controller::change_mode(Mode m)
 {
-    Serial.printf("setting mode %d\n",m);
+    //Serial.printf("setting mode %d\n",m);
     fill_mode = Not_fill_mode;
     fill_done = true;
     mode = m;
+    fade = 30;
     preset = 0;
     step_count = 0;
     step = 1;
@@ -218,12 +219,10 @@ void Hex_controller::change_mode(Mode m)
     else if (mode == Mode::RainbowSwipeHorz || mode == Mode::RainbowSwipeVert)
     {
         drawEveryNthMs = 30;
-        fade = 30;
     }
     else
     {
         drawEveryNthMs = 100;
-        fade = 30;
     }
 }
 
