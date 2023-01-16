@@ -15,6 +15,7 @@ static int outer_led_num;
 static int8_t position[NUM_BOXES][2] = {{0, 0}, {1, 1}, {2, 0}, {3, -1}, {3, 1}};
 static uint8_t points_of_contact[NUM_BOXES][6]; // nth bit will tell if nth side is in contact
 // left-right
+static int preset_num = 5;
 static int preset1[] = {Fill_by_lines_fLeft, Fill_by_lines_fRight};
 // top-bottom
 static int preset2[] = {Fill_by_lines_fTop, Fill_by_lines_fBottom};
@@ -31,9 +32,8 @@ class Hex_controller
 {
 private:
     CRGB clr_arr[4];
-    uint8_t maxBrightness;
+    uint8_t maxBrightness,fade;
     int16_t rainbow;
-    int16_t fade;
     bool fill_done;
     Mode mode;
     FillMode fill_mode;
@@ -51,7 +51,7 @@ private:
 
 public:
     Hex_controller() : clr_arr{(CRGB::Red), (CRGB::Lime), (CRGB::Blue), (CRGB::DarkKhaki)},
-                       fade(0),
+                       fade(30),
                        rainbow(0),
                        maxBrightness(UINT8_MAX),
                        mode(Stationar),
@@ -102,7 +102,7 @@ public:
     void set_color(CRGB clr, int idx);
     void set_brightness(uint8_t b);
     void set_serial(HardwareSerial &ser);
-    void set_fade(bool f);
+    void set_fade(uint8_t f);
     void set_rainbow(int r);
     void pause_play(bool f);
     void change_mode(Mode m);

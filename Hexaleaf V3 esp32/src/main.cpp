@@ -14,15 +14,11 @@
 #include "structs.h"
 #include "HEX_controller.h"
 
-// esp_rmaker_device_t *device = esp_rmaker_device_create("Light", NULL, NULL);
-/* ----- Fastled constants ----- */
-
-const long wifiTimeout = 20000;
 String topicArray[] = {"mode", "speed", "anim", "fade", "power", "brightness"};
 
 Hex_controller *hexController;
-int period = 5000;
-Mode m = Stationar;
+int localChangePeriod = 5000;
+long lastChangeMs = 0;
 bool power = true;
 bool localRun = true;
 WiFiManager wm;
@@ -90,7 +86,7 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
         else if (strstr(topic, "brightness"))
         {
             int s = atoi((char *)payload);
-            hexController->set_fade(s);
+            hexController->set_brightness(s);
             Serial.printf("brightness is now %d\n", s);
         }
     }
@@ -169,9 +165,10 @@ void setup()
     hexController->init();
     // WifiSetup();
     hexController->set_rainbow(1);
-    hexController->change_mode(RotationOuter);
-    //hexController->set_pre_anim(5);
-    hexController->set_fade(100);
+    hexController->change_mode(RandColorRandHex);
+    hexController->set_brightness(255);
+    //hexController->set_pre_anim(2);
+    //hexController->set_fade(20);
     Serial.println("Setup DONE");
 
     delay(2000);
@@ -183,6 +180,11 @@ void loop()
     if (!localRun)
     {
         client.loop();
+    }else{
+        if (millis() > lastChangeMs + localChangePeriod){
+            hexController->next_mode();
+            lastChangeMs = millis();
+        }
     }
     if (power)
     {
