@@ -17,7 +17,7 @@
 String topicArray[] = {"mode", "speed", "anim", "fade", "power", "brightness"};
 
 Hex_controller *hexController;
-int localChangePeriod = 5000;
+int localChangePeriod = 20000;
 long lastChangeMs = 0;
 bool power = true;
 bool localRun = true;
@@ -165,10 +165,8 @@ void setup()
     hexController->init();
     // WifiSetup();
     hexController->set_rainbow(1);
-    hexController->change_mode(Stationar);
+    hexController->change_mode(AudioFreqPool);
     hexController->set_brightness(255);
-    //hexController->set_pre_anim(2);
-    //hexController->set_fade(20);
     Serial.println("Setup DONE");
 
     delay(2000);
@@ -181,10 +179,10 @@ void loop()
     {
         client.loop();
     }else{
-        if (millis() > lastChangeMs + localChangePeriod){
-            hexController->next_mode();
-            lastChangeMs = millis();
-        }
+        // if (millis() > lastChangeMs + localChangePeriod){
+        //     hexController->next_mode();
+        //     lastChangeMs = millis();
+        // }
     }
     if (power)
     {

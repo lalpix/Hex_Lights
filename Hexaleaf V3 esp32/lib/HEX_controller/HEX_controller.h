@@ -22,11 +22,11 @@ static int preset2[] = {Fill_by_lines_fTop, Fill_by_lines_fBottom};
 // middle meeting
 static int preset3[] = {Fill_by_lines_meet_in_midle_TB, Fill_by_lines_meet_in_midle_LR};
 // rotation
-static int preset4[] = {Fill_by_rotation_fBottom, Fill_by_rotation_fTop};
+//static int preset4[] = {Fill_by_rotation_fBottom, Fill_by_rotation_fTop};
 // From all sides sequentially
 static int preset5[] = {Fill_by_lines_fTop, Fill_by_lines_fLeft, Fill_by_lines_fBottom, Fill_by_lines_fRight}; 
-static int* presets[] = {preset1, preset2, preset3, preset4, preset5};
-static int preset_lenght[]={sizeof(preset1) / sizeof(FillMode), sizeof(preset2) / sizeof(FillMode), sizeof(preset3) / sizeof(FillMode), sizeof(preset4) / sizeof(FillMode), sizeof(preset5) / sizeof(FillMode)};
+static int* presets[] = {preset1, preset2, preset3, preset5};
+static int preset_lenght[]={sizeof(preset1) / sizeof(FillMode), sizeof(preset2) / sizeof(FillMode), sizeof(preset3) / sizeof(FillMode), sizeof(preset5) / sizeof(FillMode)};
 
 class Hex_controller
 {

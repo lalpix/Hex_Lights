@@ -201,6 +201,11 @@ void Hex_controller::set_rainbow(int r)
     // mySerial.println(rainbow);
 }
 // internal functions
+void Hex_controller::printCRGB(CRGB clr)
+{
+    mySerial.printf("R: %x G: %x B: %x\n", clr.r, clr.g, clr.b);
+}
+
 void Hex_controller::change_mode(Mode m)
 {
     //Serial.printf("setting mode %d\n",m);
@@ -225,7 +230,6 @@ void Hex_controller::change_mode(Mode m)
         drawEveryNthMs = 100;
     }
 }
-
 void Hex_controller::change_fill_mode(FillMode new_fill_mode)
 {
     // mySerial.print("changing fill mode to: ");
@@ -267,6 +271,14 @@ void Hex_controller::change_fill_mode(FillMode new_fill_mode)
 }
 void Hex_controller::next_mode()
 {
+
+    if (mode != PresetAnim)
+    {
+        mode = (Mode)(((int)mode) + 1);
+        if (mode == Mode_num)
+            mode = (Mode)0;
+        change_mode(mode);
+    }
     if (mode == PresetAnim)
     {
         if (preset == preset_num)
@@ -282,22 +294,8 @@ void Hex_controller::next_mode()
             preset += 1;
             set_pre_anim(preset);
         }
-        
-    }
-    else
-    {
-        mode = (Mode)(((int)mode) + 1);
-        if (mode == Mode_num)
-            mode = (Mode)0;
-        change_mode(mode);
-    }
+        }
 }
-
-void Hex_controller::printCRGB(CRGB clr)
-{
-    mySerial.printf("R: %x G: %x B: %x\n", clr.r, clr.g, clr.b);
-}
-
 void Hex_controller::update()
 {
     if (millis() > (lastDrew + drawEveryNthMs))
