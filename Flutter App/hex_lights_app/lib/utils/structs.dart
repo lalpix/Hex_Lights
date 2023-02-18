@@ -6,14 +6,7 @@ class Hexagon {
   Coordinates coord;
   int seqId;
   //storing adjustment to be revoked at removal
-  Coordinates expantion;
-  Coordinates offset;
-  Hexagon(
-    this.coord,
-    this.seqId,
-    this.expantion,
-    this.offset,
-  );
+  Hexagon(this.coord, this.seqId);
 
   final List<Coordinates> _sideValsForOdd = [
     Coordinates.axial(0, 1),
@@ -40,6 +33,14 @@ class Hexagon {
     Coordinates.axial(-1, 0),
     Coordinates.axial(-1, 1),
   ];
+  final List<Coordinates> axialGridList = [
+    HexDirections.flatDown,
+    HexDirections.flatRightDown,
+    HexDirections.flatRightTop,
+    HexDirections.flatTop,
+    HexDirections.flatLeftTop,
+    HexDirections.flatLeftDown
+  ];
   /*
   List<Coordinates> coordsForUi(List<Coordinates> doubled) {
 
@@ -49,24 +50,15 @@ class Hexagon {
     return 
   }*/
 
-  bool isNextTo(Coordinates c, Coordinates offset) {
+  bool isNextTo(Coordinates c) {
     //starting from bottom rotate right
 
     bool ret = false;
-    if ((coord.q+offset.q).isOdd) {
-      for (var e in _sideValsForOdd) {
-        if (coord + e + offset == c) {
-          ret = true;
-        }
-      }
-    } else {
-      for (var e in _sideValsForEven) {
-        if (coord + e + offset == c) {
-          ret = true;
-        }
+    for (var e in axialGridList) {
+      if (coord + e == c) {
+        ret = true;
       }
     }
-
     return ret;
   }
 
