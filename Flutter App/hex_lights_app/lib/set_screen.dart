@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:hexagon/hexagon.dart';
 import 'package:hex_lights_app/utils/structs.dart';
@@ -17,39 +19,16 @@ class _SetShapePageState extends State<SetShapePage> {
   List<Hexagon> hexMainList = List.empty(growable: true);
   Coordinates beggining = Coordinates.axial(0, 0);
   // q is column, r is row
-  int width = 3, heigh = 3;
   int depth = 1; //center offset
-  Coordinates centerOffset = Coordinates.axial(1, 1);
   int lastId = 0;
   void _addHexMoudle(Coordinates c) {
     lastId = lastId + 1;
+    if (c.distance(Coordinates.zero) >= depth) {
+      depth = depth + 1;
+    }
 
-    //if new one is on the edge, add ofstet in opposite dir and add width/height
     setState(() {
-      int exp_q = 0, ofst_q = 0, exp_r = 0, ofst_r = 0;
-      if (c.q == 0 || c.q == width - 1) {
-        width = width + 1;
-        exp_q = 1;
-        if (c.q == 0) {
-          centerOffset = Coordinates.axial(centerOffset.q + 1, centerOffset.r);
-          ofst_q = 1;
-        }
-      }
-      if (c.r == 0 || c.r == heigh - 1) {
-        heigh = heigh + 1;
-        exp_r = 1;
-        if (c.r == 0) {
-          centerOffset = Coordinates.axial(centerOffset.q, centerOffset.r + 1);
-          ofst_r = 1;
-        }
-      }
-
-      hexMainList.add(Hexagon(
-        c-centerOffset,
-        lastId,
-        Coordinates.axial(exp_q, exp_r),
-        Coordinates.axial(ofst_q, ofst_r),
-      ));
+      hexMainList.add(Hexagon(c, lastId));
     });
   }
 
@@ -58,13 +37,17 @@ class _SetShapePageState extends State<SetShapePage> {
       return;
     }
     lastId = lastId - 1;
-    //int r_min = heigh, r_max = 0, q_min = width, q_max = 0;
-    Hexagon last = hexMainList.last;
+    bool reduce = true;
+    for (var hex in hexMainList) {
+      if (hex.coord.distance(Coordinates.zero) > depth - 1) {
+        reduce = false;
+      }
+    }
+    if (reduce) {
+      depth = depth - 1;
+    }
+
     setState(() {
-      width = width - last.expantion.q;
-      heigh = heigh - last.expantion.r;
-      centerOffset = Coordinates.axial(
-          centerOffset.q - last.offset.q, centerOffset.r - last.offset.r);
       hexMainList.removeLast();
     });
   }
@@ -72,7 +55,7 @@ class _SetShapePageState extends State<SetShapePage> {
   @override
   void initState() {
     super.initState();
-    hexMainList.add(Hexagon(beggining, 0, Coordinates.zero, Coordinates.zero));
+    hexMainList.add(Hexagon(beggining, 0));
   }
 
   @override
@@ -81,17 +64,11 @@ class _SetShapePageState extends State<SetShapePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            HexagonOffsetGrid.evenFlat(
-              rows: heigh,
-              columns: width,
-              buildTile: (q, r) => _myHexWidgetBuilder(Coordinates.axial(q, r)),
-            ),
-          ],
-        ),
+      body: InteractiveViewer(
+        minScale: 0.2,
+        maxScale: 4.0,
+        child: HexagonGrid.flat(
+            depth: depth, buildTile: (c) => _myHexWidgetBuilder(c)),
       ),
       floatingActionButton: OutlinedButton(
         onPressed: () => {
@@ -110,15 +87,18 @@ class _SetShapePageState extends State<SetShapePage> {
     bool inMainBody = false;
     int idx = 0;
     for (Hexagon element in hexMainList) {
-      if (element.coord + centerOffset == c) {
+      if (element.coord == c) {
         inMainBody = true;
         idx = element.seqId;
       }
     }
     if (inMainBody) {
-      return _MainBodyHex(c, idx);
+      return _mainBodyHex(c, idx);
     } else {
-      bool isPossibleNew = hexMainList.last.isNextTo(c, centerOffset);
+      bool isPossibleNew = hexMainList.last.isNextTo(c);
+      if (c == HexDirections.flatDown) {
+        isPossibleNew = false;
+      }
       return HexagonWidgetBuilder(
           color: isPossibleNew ? Colors.blue : Colors.transparent,
           padding: 2.0,
@@ -132,7 +112,7 @@ class _SetShapePageState extends State<SetShapePage> {
     }
   }
 
-  HexagonWidgetBuilder _MainBodyHex(Coordinates ci, idx) {
+  HexagonWidgetBuilder _mainBodyHex(Coordinates ci, idx) {
     bool canBeRemoved = idx == lastId && ci != Coordinates.zero;
     return HexagonWidgetBuilder(
       color: Colors.amber,
