@@ -4,6 +4,7 @@ import 'package:hex_lights_app/utils/structs.dart';
 import 'package:hive/hive.dart';
 
 // USING AXIAL COORDINATES  https://www.redblobgames.com/grids/hexagons/#coordinates-offset
+// TOO FUCKING COMLEX - non symetric grid
 class SetShapePage extends StatefulWidget {
   const SetShapePage({super.key, required this.title});
 
