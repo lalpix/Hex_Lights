@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'mymqtt.dart';
 import 'set_screen.dart';
 import 'home_screen.dart';
 
@@ -12,14 +11,13 @@ void main() async {
   //..registerAdapter(PersonAdapter());
   // var box = await Hive.openBox('testBox');
 
-  MQTTClientWrapper mqttClient = MQTTClientWrapper();
-  mqttClient.prepareMqttClient();
+  
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
+  
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -30,7 +28,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: "/home",
       routes: {
-        '/home': (context) => const FirstScreen(),
+        '/home': (context) =>  const FirstScreen(),
         '/setShape': (context) => const SetShapePage(title: 'Set shape page'),
       },
     );

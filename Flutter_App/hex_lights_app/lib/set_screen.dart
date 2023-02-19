@@ -1,11 +1,9 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:hexagon/hexagon.dart';
 import 'package:hex_lights_app/utils/structs.dart';
 import 'package:hive/hive.dart';
 
-// USING AXIAL COORDINATES  https://www.redblobgames.com/grids/hexagons/#coordinates-offset
+//COORDINATES DEMO  https://www.redblobgames.com/grids/hexagons/#coordinates-offset
 class SetShapePage extends StatefulWidget {
   const SetShapePage({super.key, required this.title});
 
@@ -123,7 +121,7 @@ class _SetShapePageState extends State<SetShapePage> {
               icon: const Icon(Icons.remove),
               onPressed: () => _removeLastHexMoudle(),
             )
-          : Text("${ci.q},${ci.r} / $idx"),
+          : Text("${idx + 1}"),
     );
   }
 }
