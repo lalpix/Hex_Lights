@@ -12,8 +12,8 @@ void main() async {
   //..registerAdapter(PersonAdapter());
   // var box = await Hive.openBox('testBox');
 
-  // MQTTClientWrapper mqttClient = MQTTClientWrapper();
-  //mqttClient.prepareMqttClient();
+  MQTTClientWrapper mqttClient = MQTTClientWrapper();
+  mqttClient.prepareMqttClient();
   runApp(const MyApp());
 }
 

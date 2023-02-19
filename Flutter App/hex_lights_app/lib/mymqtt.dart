@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
@@ -23,8 +24,8 @@ class MQTTClientWrapper {
   void prepareMqttClient() async {
     _setupMqttClient();
     await _connectClient();
-    _subscribeToTopic('Dart/Mqtt_client/testtopic');
-    _publishMessage('Hello');
+    _subscribeToTopic('test');
+    _publishMessage('test', 'Hello');
   }
 
   // waiting for the connection, if an error occurs, print it and disconnect
@@ -32,7 +33,7 @@ class MQTTClientWrapper {
     try {
       print('client connecting....');
       connectionState = MqttCurrentConnectionState.CONNECTING;
-      await client.connect('tonnejan', 'CVUTMQTT');
+      await client.connect('test1', 'testtest');
     } on Exception catch (e) {
       print('client exception - $e');
       connectionState = MqttCurrentConnectionState.ERROR_WHEN_CONNECTING;
@@ -51,11 +52,20 @@ class MQTTClientWrapper {
     }
   }
 
+  static const _chars =
+      'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  final Random _rnd = Random();
+
+  String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
+      length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+
   void _setupMqttClient() {
+    
     client = MqttServerClient.withPort(
-        'da460ba3a52746539d703c49379bf9a5.s2.eu.hivemq.cloud',
-        'tonnejan',
-        8883);
+        '40f92d98eff64948bc91d8aeed757337.s2.eu.hivemq.cloud',
+        'MobileApp_${getRandomString(5)}',
+        8883,
+        maxConnectionAttempts: 20);
     // the next 2 lines are necessary to connect with tls, which is used by HiveMQ Cloud
     client.secure = true;
     client.securityContext = SecurityContext.defaultContext;
@@ -79,14 +89,12 @@ class MQTTClientWrapper {
     });
   }
 
-  void _publishMessage(String message) {
+  void _publishMessage(String topic, String message) {
     final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
     builder.addString(message);
 
-    print(
-        'Publishing message "$message" to topic ${'Dart/Mqtt_client/testtopic'}');
-    client.publishMessage(
-        'Dart/Mqtt_client/testtopic', MqttQos.exactlyOnce, builder.payload!);
+    print('Publishing message "$message" to topic $topic');
+    client.publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
   }
 
   // callbacks for different events
