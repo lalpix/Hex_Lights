@@ -15,6 +15,20 @@ enum MqttCurrentConnectionState {
 enum MqttSubscriptionState { IDLE, SUBSCRIBED }
 
 class MQTTClientWrapper {
+  List<String> myTopics = [
+    'power',
+    'clr1',
+    'clr2',
+    'clr3',
+    'mode',
+    'anim',
+    'fade',
+    'brightness',
+    'speed'
+  ];
+  static const _chars =
+      'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  final Random _rnd = Random();
   late MqttServerClient client;
 
   MqttCurrentConnectionState connectionState = MqttCurrentConnectionState.IDLE;
@@ -24,8 +38,6 @@ class MQTTClientWrapper {
   void prepareMqttClient() async {
     _setupMqttClient();
     await _connectClient();
-    _subscribeToTopic('test');
-    _publishMessage('test', 'Hello');
   }
 
   // waiting for the connection, if an error occurs, print it and disconnect
@@ -52,15 +64,10 @@ class MQTTClientWrapper {
     }
   }
 
-  static const _chars =
-      'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-  final Random _rnd = Random();
-
   String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
       length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
 
   void _setupMqttClient() {
-    
     client = MqttServerClient.withPort(
         '40f92d98eff64948bc91d8aeed757337.s2.eu.hivemq.cloud',
         'MobileApp_${getRandomString(5)}',
@@ -69,18 +76,17 @@ class MQTTClientWrapper {
     // the next 2 lines are necessary to connect with tls, which is used by HiveMQ Cloud
     client.secure = true;
     client.securityContext = SecurityContext.defaultContext;
-    client.keepAlivePeriod = 20;
+    //client.keepAlivePeriod = 20;
     client.onDisconnected = _onDisconnected;
     client.onConnected = _onConnected;
-    client.onSubscribed = _onSubscribed;
   }
 
-  void _subscribeToTopic(String topicName) {
+  void subscribeToTopic(String topicName) {
     print('Subscribing to the $topicName topic');
     client.subscribe(topicName, MqttQos.atMostOnce);
-
-    // print the message when it is received
     client.updates?.listen((List<MqttReceivedMessage<MqttMessage>> c) {
+      //here add msg handler 
+      //probably not needed for app
       final MqttMessage recMess = c[0].payload;
       var message = recMess.toString;
 
@@ -89,18 +95,10 @@ class MQTTClientWrapper {
     });
   }
 
-  void _publishMessage(String topic, String message) {
+  void publishMessage(String topic, String message) {
     final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
     builder.addString(message);
-
-    print('Publishing message "$message" to topic $topic');
     client.publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
-  }
-
-  // callbacks for different events
-  void _onSubscribed(String topic) {
-    print('Subscription confirmed for topic $topic');
-    subscriptionState = MqttSubscriptionState.SUBSCRIBED;
   }
 
   void _onDisconnected() {

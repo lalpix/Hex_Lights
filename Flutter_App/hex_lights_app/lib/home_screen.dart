@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mqtt_client/mqtt_browser_client.dart';
-import 'package:mqtt_client/mqtt_client.dart';
-import 'package:mqtt_client/mqtt_server_client.dart';
-import 'package:typed_data/src/typed_buffer.dart';
-
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:hive/hive.dart';
 import 'mymqtt.dart';
 
 class FirstScreen extends StatefulWidget {
@@ -15,14 +12,18 @@ class FirstScreen extends StatefulWidget {
 class _FirstScreenState extends State<FirstScreen> {
   @override
   void initState() {
-    mqttClient = MQTTClientWrapper();
+    
     mqttClient.prepareMqttClient();
-    client = mqttClient.client;
     super.initState();
   }
 
+  Color pickerColor = Color(0xff443a49);
+  Color currentColor = Color(0xff443a49);
+  late Box box;
   MQTTClientWrapper mqttClient = MQTTClientWrapper();
-  late MqttServerClient client;
+  void changeColor(Color color) {
+    setState(() => pickerColor = color);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,19 +35,99 @@ class _FirstScreenState extends State<FirstScreen> {
         children: [
           ElevatedButton(
               onPressed: () {
-                client.publishMessage(
-                    "test", MqttQos.exactlyOnce, "sending msg" as Uint8Buffer);
+                mqttClient.publishMessage("test", 'message');
               },
               child: const Text("Send message")),
+          ElevatedButton(onPressed: (){
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context){
+                                  return AlertDialog(
+                                      title: Text('Pick a color!'),
+                                      content: SingleChildScrollView(
+                                        child: ColorPicker(
+                                          pickerColor: pickerColor, //default color
+                                          onColorChanged: (Color color){ //on color picked
+                                              setState(() {
+                                                pickerColor = color;
+                                              });
+                                          }, 
+                                        ),
+                                      ),
+                                      actions: <Widget>[
+                                        ElevatedButton(
+                                          child: const Text('DONE'),
+                                          onPressed: () {
+                                            Navigator.of(context).pop(); //dismiss the color picker
+                                          },
+                                        ),
+                                      ],
+                                  );
+                              }
+                            ); 
+                              
+                        }, child: Text("color picker")),
+          
           ElevatedButton(
             onPressed: () {
               Navigator.pushNamed(context, '/setShape');
               // Navigate to the second screen when tapped.
             },
-            child: const Text('Launch screen'),
+            child: const Text('Set your shape'),
           ),
-        ],
-      ),
-    );
+            ],
+   ),
+   /*
+        TabBarView(
+            children: <Widget>[
+             
+              MaterialColorPickerExample(
+                  pickerColor: currentColor, onColorChanged: changeColor),
+              
+            ],
+          ),*/
+        
+    ); 
   }
+  /*
+  showDialog(
+  context: context,
+  child: AlertDialog(
+      title: const Text('Pick a color!'),
+      content: SingleChildScrollView(
+        child: ColorPicker(
+          pickerColor: pickerColor,
+          onColorChanged: changeColor,
+        ),
+        // Use Material color picker:
+        //
+        // child: MaterialPicker(
+        //   pickerColor: pickerColor,
+        //   onColorChanged: changeColor,
+        //   showLabel: true, // only on portrait mode
+        // ),
+        //
+        // Use Block color picker:
+        //
+        // child: BlockPicker(
+        //   pickerColor: currentColor,
+        //   onColorChanged: changeColor,
+        // ),
+        //
+        // child: MultipleChoiceBlockPicker(
+        //   pickerColors: currentColors,
+        //   onColorsChanged: changeColors,
+        // ),
+      ),
+      actions: <Widget>[
+        ElevatedButton(
+          child: const Text('Got it'),
+          onPressed: () {
+            setState(() => currentColor = pickerColor);
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    ),
+  );*/
 }

@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'set_screen.dart';
@@ -7,17 +6,16 @@ import 'home_screen.dart';
 
 void main() async {
   var path = Directory.current.path;
+  /*
   Hive.init(path);
-  //..registerAdapter(PersonAdapter());
-  // var box = await Hive.openBox('testBox');
-
-  
+  Hive.openBox('Box');
+  */
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-  
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -28,7 +26,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: "/home",
       routes: {
-        '/home': (context) =>  const FirstScreen(),
+        '/home': (context) => const FirstScreen(),
         '/setShape': (context) => const SetShapePage(title: 'Set shape page'),
       },
     );

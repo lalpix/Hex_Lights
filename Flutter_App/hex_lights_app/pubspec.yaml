@@ -39,6 +39,7 @@ dependencies:
   mqtt_client: ^9.7.4
   ini: '>=1.0.0'
   hive: ^2.2.3
+  flutter_colorpicker: ^1.0.3
 
 dev_dependencies:
   flutter_test:
