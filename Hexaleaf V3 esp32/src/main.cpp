@@ -14,16 +14,22 @@
 #include "structs.h"
 #include "HEX_controller.h"
 
-String topicArray[] = {"mode", "speed", "anim", "fade", "power", "brightness"};
-
+char *topicArray[] = {"mode", "speed", "anim", "fade", "power", "brightness"};
+int num_topics = 6;
 Hex_controller *hexController;
 int localChangePeriod = 20000;
 long lastChangeMs = 0;
 bool power = true;
-bool localRun = true;
+bool localRun = false;
 WiFiManager wm;
 WiFiClientSecure net = WiFiClientSecure();
 PubSubClient client(net);
+
+void publishMessage(const char *topic, String payload)
+{
+    if (client.publish(topic, payload.c_str(), true))
+        Serial.println("Message publised [" + String(topic) + "]: " + payload);
+}
 
 void messageHandler(char *topic, byte *payload, unsigned int length)
 {
@@ -117,41 +123,47 @@ void WifiSetup()
     }
     hexController->fill_one_side_one_hex(CRGB::Red, 0, 1);
     hexController->show();
-    net.setCACert(AWS_CERT_CA);
-    net.setCertificate(AWS_CERT_CRT);
-    net.setPrivateKey(AWS_CERT_PRIVATE);
+    net.setCACert(root_ca);
 
-    // Connect to the MQTT broker on the AWS endpoint we defined earlier
-    client.setServer(AWS_IOT_ENDPOINT, 8883);
-
+    client.setServer(mqtt_server, 8883);
     // Create a message handler
     client.setCallback(messageHandler);
 
-    Serial.println("Connecting_to_AWS_IOT\n");
-
-    while (!client.connect(THINGNAME))
+    Serial.println("Connecting to Mqtt\n");
+    // Loop until we're reconnected
+    while (!client.connected())
     {
-        Serial.print(".");
-        delay(100);
+        Serial.print("Attempting MQTT connection...\n");
+        String clientId = "ESP8266Client-"; // Create a random client ID
+        clientId += String(random(0xffff), HEX);
+        // Attempt to connect
+        if (!client.connect(clientId.c_str(), mqtt_username, mqtt_password))
+        {
+            Serial.print("failed, rc=");
+            Serial.print(client.state());
+            Serial.println(" try again in 5 seconds"); // Wait 5 seconds before retrying
+            delay(5000);
+        }
     }
     hexController->fill_one_side_one_hex(CRGB::Green, 0, 1);
     hexController->show();
     if (!client.connected())
     {
-        Serial.println("AWS_IoT_Timeout!");
+        Serial.println("Mqtt timeout!");
         return;
     }
-
+   
+    client.subscribe(topicArray[0], 1);
     // Subscribe to a topic
-    for (int i = 0; i < topicArray->length(); i++)
+    for (int i = 0; i < num_topics; i++)
     {
-        // not tested
-        char tmp[topicArray[i].length()];
-        topicArray[i].toCharArray(tmp, topicArray[i].length());
-        client.subscribe(tmp);
+        client.subscribe(topicArray[i], 1);
+       
     }
-
-    Serial.println("AWS_IoT_Connected!");
+   
+    char *tpc = "test";
+    publishMessage(tpc, "setup done");
+    Serial.println("MQTT_Connected!");
 }
 
 void setup()
@@ -163,7 +175,7 @@ void setup()
     hexController = new Hex_controller();
     hexController->set_serial(Serial);
     hexController->init();
-    // WifiSetup();
+    WifiSetup();
     hexController->set_rainbow(1);
     hexController->change_mode(AudioFreqPool);
     hexController->set_brightness(255);
@@ -178,7 +190,9 @@ void loop()
     if (!localRun)
     {
         client.loop();
-    }else{
+    }
+    else
+    {
         // if (millis() > lastChangeMs + localChangePeriod){
         //     hexController->next_mode();
         //     lastChangeMs = millis();
@@ -191,5 +205,6 @@ void loop()
     else
     {
         hexController->fill_all_hex(CRGB::Black);
+        delay(1000);
     }
 }
