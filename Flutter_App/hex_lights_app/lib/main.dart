@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'set_screen.dart';
+//import 'set_screen.dart';
+import 'set_screen_horz_grid.dart';
 import 'home_screen.dart';
 
 void main() async {
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: "/home",
+      initialRoute: "/setShape",
       routes: {
         '/home': (context) => const FirstScreen(),
         '/setShape': (context) => const SetShapePage(title: 'Set shape page'),
