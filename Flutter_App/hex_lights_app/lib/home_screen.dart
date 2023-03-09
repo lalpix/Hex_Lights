@@ -17,8 +17,8 @@ class _FirstScreenState extends State<FirstScreen> {
     super.initState();
   }
 
-  Color pickerColor = Color(0xff443a49);
-  Color currentColor = Color(0xff443a49);
+  Color pickerColor = const Color(0xff443a49);
+  Color currentColor = const Color(0xff443a49);
   late Box box;
   MQTTClientWrapper mqttClient = MQTTClientWrapper();
   void changeColor(Color color) {
@@ -43,7 +43,7 @@ class _FirstScreenState extends State<FirstScreen> {
                                 context: context,
                                 builder: (BuildContext context){
                                   return AlertDialog(
-                                      title: Text('Pick a color!'),
+                                      title: const Text('Pick a color!'),
                                       content: SingleChildScrollView(
                                         child: ColorPicker(
                                           pickerColor: pickerColor, //default color
@@ -66,7 +66,7 @@ class _FirstScreenState extends State<FirstScreen> {
                               }
                             ); 
                               
-                        }, child: Text("color picker")),
+                        }, child: const Text("color picker")),
           
           ElevatedButton(
             onPressed: () {

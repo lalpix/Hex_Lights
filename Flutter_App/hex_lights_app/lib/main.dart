@@ -4,13 +4,18 @@ import 'package:hive/hive.dart';
 //import 'set_screen.dart';
 import 'set_screen_horz_grid.dart';
 import 'home_screen.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() async {
-  var path = Directory.current.path;
-  /*
+  WidgetsFlutterBinding.ensureInitialized();
+
+  var dir = await getApplicationDocumentsDirectory();
+  var path = dir.path;
+  print('path is $path');
   Hive.init(path);
-  Hive.openBox('Box');
-  */
+  // final box = await Hive.openBox('HexStorage');
+  // await box.clear();
   runApp(const MyApp());
 }
 

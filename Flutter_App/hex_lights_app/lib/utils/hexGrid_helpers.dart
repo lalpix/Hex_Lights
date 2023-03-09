@@ -1,4 +1,5 @@
-import 'package:hex_lights_app/utils/structs.dart';
+
+import 'package:hex_lights_app/utils/hexagon_model.dart';
 import 'package:hexagon/hexagon.dart';
 import 'package:collection/collection.dart'; // You have to add this manually, for some reason it cannot be added automatically
 import 'dir_lists.dart';
@@ -12,9 +13,7 @@ class HexGridHelpers {
     bool widthOffset = false;
     print('calculating ui');
     hexList.sort((a, b) => a.seqId.compareTo(b.seqId));
-    // for (var element in hexList) {
-    //   print('hex list sorted id ${element.seqId} coords ${element.coord}');
-    // }
+
     Hexagon lastHex = hexList.last;
     //listWith New
     List<Coordinates> coordList = [...coordListFromHex(hexList), ...possibleNew(hexList, false)];
@@ -26,12 +25,12 @@ class HexGridHelpers {
     coordList.sort((a, b) => b.q.compareTo(a.q));
     Coordinates mostLeft = coordList.last;
 
-    print('most left $mostLeft');
-    print('most left with new $mostLeftWithNew');
+    // print('most left $mostLeft');
+    // print('most left with new $mostLeftWithNew');
     //if adept is more on left than main boddy then add offset
     if (mostLeft.q > mostLeftWithNew.q) {
       widthOffset = true;
-      print('adding width offset');
+      // print('adding width offset');
     }
 
     Hexagon? start = hexList.firstWhereOrNull((element) => element.coord.q == mostLeft.q);
@@ -64,7 +63,7 @@ class HexGridHelpers {
     //Track HEX backward
     while (tmp.seqId != 0) {
       Hexagon hexStepBack = hexList.firstWhere((element) => element.seqId == tmp.seqId - 1);
-      print('this ${tmp.coord} ,stepBack ${hexStepBack.coord}');
+      // print('this ${tmp.coord} ,stepBack ${hexStepBack.coord}');
       Coordinates uiDir = dirConversion(
           tmp.dirToPrevious!, dirForDoubled, tmp.uiCoord.q.isEven ? dirForEven : dirForOdd);
       hexStepBack.uiCoord = tmp.uiCoord + uiDir;
@@ -81,7 +80,7 @@ class HexGridHelpers {
       }
     }
 
-    print("heightOffset is $heightOffset , widthOffset is $widthOffset");
+    // print("heightOffset is $heightOffset , widthOffset is $widthOffset");
     for (var element in hexList) {
       element.uiCoord = element.uiCoord - Coordinates.axial(0, heightOffset);
     }
