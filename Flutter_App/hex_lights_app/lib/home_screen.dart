@@ -3,16 +3,15 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:hive/hive.dart';
 import 'mymqtt.dart';
 
-class FirstScreen extends StatefulWidget {
-  const FirstScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
   @override
-  State<FirstScreen> createState() => _FirstScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _FirstScreenState extends State<FirstScreen> {
+class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
-    
     mqttClient.prepareMqttClient();
     super.initState();
   }
@@ -38,46 +37,46 @@ class _FirstScreenState extends State<FirstScreen> {
                 mqttClient.publishMessage("test", 'message');
               },
               child: const Text("Send message")),
-          ElevatedButton(onPressed: (){
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext context){
-                                  return AlertDialog(
-                                      title: const Text('Pick a color!'),
-                                      content: SingleChildScrollView(
-                                        child: ColorPicker(
-                                          pickerColor: pickerColor, //default color
-                                          onColorChanged: (Color color){ //on color picked
-                                              setState(() {
-                                                pickerColor = color;
-                                              });
-                                          }, 
-                                        ),
-                                      ),
-                                      actions: <Widget>[
-                                        ElevatedButton(
-                                          child: const Text('DONE'),
-                                          onPressed: () {
-                                            Navigator.of(context).pop(); //dismiss the color picker
-                                          },
-                                        ),
-                                      ],
-                                  );
-                              }
-                            ); 
-                              
-                        }, child: const Text("color picker")),
-          
+          ElevatedButton(
+              onPressed: () {
+                showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Pick a color!'),
+                        content: SingleChildScrollView(
+                          child: ColorPicker(
+                            pickerColor: pickerColor, //default color
+                            onColorChanged: (Color color) {
+                              //on color picked
+                              setState(() {
+                                pickerColor = color;
+                              });
+                            },
+                          ),
+                        ),
+                        actions: <Widget>[
+                          ElevatedButton(
+                            child: const Text('DONE'),
+                            onPressed: () {
+                              Navigator.of(context).pop(); //dismiss the color picker
+                            },
+                          ),
+                        ],
+                      );
+                    });
+              },
+              child: const Text("color picker")),
           ElevatedButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/setShape');
+              Navigator.pushNamed(context, '/setLayout');
               // Navigate to the second screen when tapped.
             },
-            child: const Text('Set your shape'),
+            child: const Text('Set your layout'),
           ),
-            ],
-   ),
-   /*
+        ],
+      ),
+      /*
         TabBarView(
             children: <Widget>[
              
@@ -86,48 +85,6 @@ class _FirstScreenState extends State<FirstScreen> {
               
             ],
           ),*/
-        
-    ); 
+    );
   }
-  /*
-  showDialog(
-  context: context,
-  child: AlertDialog(
-      title: const Text('Pick a color!'),
-      content: SingleChildScrollView(
-        child: ColorPicker(
-          pickerColor: pickerColor,
-          onColorChanged: changeColor,
-        ),
-        // Use Material color picker:
-        //
-        // child: MaterialPicker(
-        //   pickerColor: pickerColor,
-        //   onColorChanged: changeColor,
-        //   showLabel: true, // only on portrait mode
-        // ),
-        //
-        // Use Block color picker:
-        //
-        // child: BlockPicker(
-        //   pickerColor: currentColor,
-        //   onColorChanged: changeColor,
-        // ),
-        //
-        // child: MultipleChoiceBlockPicker(
-        //   pickerColors: currentColors,
-        //   onColorsChanged: changeColors,
-        // ),
-      ),
-      actions: <Widget>[
-        ElevatedButton(
-          child: const Text('Got it'),
-          onPressed: () {
-            setState(() => currentColor = pickerColor);
-            Navigator.of(context).pop();
-          },
-        ),
-      ],
-    ),
-  );*/
 }

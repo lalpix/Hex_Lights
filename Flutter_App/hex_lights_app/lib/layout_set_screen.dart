@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hex_lights_app/utils/dir_lists.dart';
-import 'package:hex_lights_app/utils/hexGrid_helpers.dart';
+import 'package:hex_lights_app/hexagon_grid/dir_lists.dart';
+import 'package:hex_lights_app/hexagon_grid/hexagon_grid_helpers.dart';
 import 'package:hexagon/hexagon.dart';
 import 'package:hex_lights_app/utils/hexagon_model.dart';
 import 'package:hive/hive.dart';
@@ -8,14 +8,14 @@ import 'package:collection/collection.dart'; // You have to add this manually, f
 
 // USING AXIAL COORDINATES  https://www.redblobgames.com/grids/hexagons/#coordinates-offset
 
-class SetShapePage extends StatefulWidget {
-  const SetShapePage({super.key, required this.title});
+class LayoutSetScreen extends StatefulWidget {
+  const LayoutSetScreen({super.key, required this.title});
   final String title;
   @override
-  State<SetShapePage> createState() => _SetShapePageState();
+  State<LayoutSetScreen> createState() => _LayoutSetScreenState();
 }
 
-class _SetShapePageState extends State<SetShapePage> {
+class _LayoutSetScreenState extends State<LayoutSetScreen> {
   HexGridHelpers hexGridHelpers = HexGridHelpers();
   List<Hexagon> hexList = List.empty(growable: true);
   Coordinates beggining = Coordinates.axial(0, 0);
@@ -23,16 +23,14 @@ class _SetShapePageState extends State<SetShapePage> {
   int lastId = 0;
   @override
   void initState() {
-    hexList.add(Hexagon(Coordinates.zero, 0));
-    _addHexMoudle(Coordinates.axial(0, -1));
-    setupHexGridData();
-
+    print('running init');
+    _setupFreshHexList();
+    _loadHexGridData();
     super.initState();
     hexGridHelpers.calculateCoordsForUi(hexList);
   }
 
-  void _addHexMoudle(Coordinates c) {
-    print('adding hex on coords $c');
+  _addHexMoudle(Coordinates c) {
     //c is UI
     Hexagon hexBefore = hexList.firstWhere((element) => element.seqId == lastId);
     lastId = lastId + 1;
@@ -51,11 +49,10 @@ class _SetShapePageState extends State<SetShapePage> {
     });
   }
 
-  void _removeLastHexMoudle() {
+  _removeLastHexMoudle() {
     if (hexList.isEmpty) {
       return;
     }
-    print('removing hex id $lastId');
     lastId = lastId - 1;
     setState(() {
       hexList.removeLast();
@@ -63,8 +60,8 @@ class _SetShapePageState extends State<SetShapePage> {
     });
   }
 
-  saveHexGridData() async {
-    final box = await Hive.openBox('HexStorage');
+  _saveHexGridData() async {
+    final box = await Hive.openBox('HexLayoutStorage');
     List<String>? stringList = List.empty(growable: true);
     for (Hexagon hex in hexList) {
       if (hex.seqId > 1) {
@@ -75,16 +72,14 @@ class _SetShapePageState extends State<SetShapePage> {
     box.put('list', stringList);
   }
 
-  setupHexGridData() async {
-    final box = await Hive.openBox('HexStorage');
-
+  _loadHexGridData() async {
+    final box = await Hive.openBox('HexLayoutStorage');
     List<String>? rawList = box.get('list') as List<String>?;
     if (rawList != null) {
       List<List<String>> list = List.generate(rawList.length, (index) => rawList[index].split(','));
       list.sort((a, b) => int.parse(a[0]).compareTo(int.parse(b[0])));
       for (var item in list) {
         Coordinates newCoords = Coordinates.axial(int.parse(item[1]), int.parse(item[2]));
-        print('new coords $newCoords');
         Hexagon hexBefore = hexList.firstWhere((element) => element.seqId == lastId);
         lastId = lastId + 1;
         Hexagon newHex = Hexagon(newCoords, lastId);
@@ -96,8 +91,14 @@ class _SetShapePageState extends State<SetShapePage> {
         hexGridHelpers.calculateCoordsForUi(hexList);
       });
     } else {
-      print('Loading data: no data found,=> fresh start');
+      print('Loading data: no data found => fresh start');
     }
+  }
+
+  _setupFreshHexList() {
+    lastId = 0;
+    hexList.add(Hexagon(Coordinates.zero, 0));
+    _addHexMoudle(Coordinates.axial(0, -1));
   }
 
   @override
@@ -118,15 +119,33 @@ class _SetShapePageState extends State<SetShapePage> {
           ],
         ),
       ),
-      floatingActionButton: OutlinedButton(
-        onPressed: () => {
-          saveHexGridData(),
-        },
-        child: const Text(
-          "finish",
-          style: TextStyle(fontSize: 40),
+      floatingActionButton: Row(children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 0, 0),
+          child: OutlinedButton(
+            onPressed: () async {
+              setState(() {
+                hexList.clear();
+                _setupFreshHexList();
+              });
+            },
+            child: const Text(
+              "clear",
+              style: TextStyle(fontSize: 40),
+            ),
+          ),
         ),
-      ),
+        const Expanded(child: Text('')),
+        OutlinedButton(
+          onPressed: () => {
+            _saveHexGridData(),
+          },
+          child: const Text(
+            "finish",
+            style: TextStyle(fontSize: 40),
+          ),
+        ),
+      ]),
     );
   }
 
@@ -160,9 +179,18 @@ class _SetShapePageState extends State<SetShapePage> {
   HexagonWidgetBuilder mainBodyHex(Coordinates ci, idx) {
     bool canBeRemoved = idx == lastId && idx > 1;
     Hexagon h = hexList.firstWhere((element) => element.seqId == idx);
-    //TODO if idx is 0 - return image of base station
+    if (idx == 0) {
+      print('got here');
+      return HexagonWidgetBuilder(
+        padding: 2.0,
+        cornerRadius: 2.0,
+        child: const Image(image: AssetImage('assets/line.png')),
+        color: Colors.white,
+      );
+    }
+
     return HexagonWidgetBuilder(
-      color: idx >= 2 ? Colors.amber : Colors.brown,
+      color: Colors.amber,
       padding: 2.0,
       cornerRadius: 2.0,
       child: canBeRemoved
@@ -170,7 +198,7 @@ class _SetShapePageState extends State<SetShapePage> {
               icon: const Icon(Icons.remove),
               onPressed: () => _removeLastHexMoudle(),
             )
-          : Text("${idx}"),
+          : Text(idx == 1 ? 'Start' : '$idx'),
     );
   }
 }

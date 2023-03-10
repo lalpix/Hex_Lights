@@ -1,4 +1,3 @@
-
 import 'package:hex_lights_app/utils/hexagon_model.dart';
 import 'package:hexagon/hexagon.dart';
 import 'package:collection/collection.dart'; // You have to add this manually, for some reason it cannot be added automatically
@@ -11,7 +10,6 @@ class HexGridHelpers {
 
   void calculateCoordsForUi(List<Hexagon> hexList) {
     bool widthOffset = false;
-    print('calculating ui');
     hexList.sort((a, b) => a.seqId.compareTo(b.seqId));
 
     Hexagon lastHex = hexList.last;
@@ -49,7 +47,6 @@ class HexGridHelpers {
     while (tmp.dirToNext != null) {
       Hexagon? next = hexList.firstWhereOrNull((element) => element.seqId == tmp.seqId + 1);
       if (next == null) {
-        //List<Coordinates> posNew = possibleNew(hexList, false);
         break;
       }
       Coordinates uiDir = dirConversion(
@@ -63,7 +60,6 @@ class HexGridHelpers {
     //Track HEX backward
     while (tmp.seqId != 0) {
       Hexagon hexStepBack = hexList.firstWhere((element) => element.seqId == tmp.seqId - 1);
-      // print('this ${tmp.coord} ,stepBack ${hexStepBack.coord}');
       Coordinates uiDir = dirConversion(
           tmp.dirToPrevious!, dirForDoubled, tmp.uiCoord.q.isEven ? dirForEven : dirForOdd);
       hexStepBack.uiCoord = tmp.uiCoord + uiDir;

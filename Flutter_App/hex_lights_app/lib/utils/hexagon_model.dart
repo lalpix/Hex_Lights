@@ -1,6 +1,6 @@
 import 'package:hexagon/hexagon.dart';
 import 'package:hive/hive.dart';
-import 'dir_lists.dart';
+import '../hexagon_grid/dir_lists.dart';
 
 class Hexagon {
   //this is for sending the list, data in regular axial patter
