@@ -44,3 +44,12 @@ List<String> hexListToDBS(List<Hexagon> hexList) {
   }
   return ret;
 }
+
+Future<bool> layoutBoxEmpty()async {
+  final box = await Hive.openBox('HexLayoutStorage');
+    
+    if(box.get('list') == null){
+      return true;
+    }
+    return false;
+}

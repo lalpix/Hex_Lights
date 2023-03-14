@@ -139,6 +139,8 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
         OutlinedButton(
           onPressed: () => {
             _saveHexGridData(),
+            Navigator.pop(context),
+            // Navigator.pushReplacementNamed(context, "/home"),
           },
           child: const Text(
             "finish",
