@@ -20,7 +20,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Mode selectedMode = Mode.Stationar;
   AnimationMode selectedAnimation = AnimationMode.LeftRight;
-  Color primaryColor = const Color(0xff443a49);
+  Color primaryColor = Colors.green;
+  Color secondaryColor = Colors.blue;
+
   late Box box;
   MQTTClientWrapper mqttClient = MQTTClientWrapper();
   @override
@@ -80,12 +82,26 @@ class _HomeScreenState extends State<HomeScreen> {
                   });
                 },
               ),
+              const Divider(),
+              InkWell(
+                child: Container(
+                  height: 50,
+                  color: secondaryColor,
+                  child: const Center(child: Text('Sekundární barva')),
+                ),
+                onTap: () async {
+                  Color color = await myColorPicker(context, secondaryColor);
+                  setState(() {
+                    secondaryColor = color;
+                  });
+                },
+              ),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/setLayout');
                   // Navigate to the second screen when tapped.
                 },
-                child: const Text('Set your layout'),
+                child: const Text('Rozložení'),
               ),
             ],
           ),

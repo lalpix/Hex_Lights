@@ -107,32 +107,35 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            HexagonOffsetGrid.evenFlat(
-              rows: hexGridHelpers.height,
-              columns: hexGridHelpers.width,
-              buildTile: (q, r) => _myHexWidgetBuilder(Coordinates.axial(q, r)),
-            ),
-          ],
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              HexagonOffsetGrid.evenFlat(
+                rows: hexGridHelpers.height,
+                columns: hexGridHelpers.width,
+                buildTile: (q, r) => _myHexWidgetBuilder(Coordinates.axial(q, r)),
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButton: Row(children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 0, 0),
-          child: OutlinedButton(
-            onPressed: () async {
-              setState(() {
-                hexList.clear();
-                _setupFreshHexList();
-              });
-            },
-            child: const Text(
-              "clear",
-              style: TextStyle(fontSize: 40),
-            ),
+        const SizedBox(
+          width: 40,
+        ),
+        OutlinedButton(
+          onPressed: () async {
+            setState(() {
+              hexList.clear();
+              _setupFreshHexList();
+            });
+          },
+          child: const Text(
+            "clear",
+            style: TextStyle(fontSize: 40),
           ),
         ),
         const Expanded(child: Text('')),
