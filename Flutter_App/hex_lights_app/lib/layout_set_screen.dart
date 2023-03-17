@@ -9,8 +9,9 @@ import 'package:collection/collection.dart'; // You have to add this manually, f
 // USING AXIAL COORDINATES  https://www.redblobgames.com/grids/hexagons/#coordinates-offset
 
 class LayoutSetScreen extends StatefulWidget {
-  const LayoutSetScreen({super.key, required this.title});
-  final String title;
+  const LayoutSetScreen({
+    super.key,
+  });
   @override
   State<LayoutSetScreen> createState() => _LayoutSetScreenState();
 }
@@ -23,7 +24,6 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
   int lastId = 0;
   @override
   void initState() {
-    print('running init');
     _setupFreshHexList();
     _loadHexGridData();
     super.initState();
@@ -105,7 +105,7 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: const Text('Nastavte svoje rozložení'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -143,7 +143,6 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
           onPressed: () => {
             _saveHexGridData(),
             Navigator.pop(context),
-            // Navigator.pushReplacementNamed(context, "/home"),
           },
           child: const Text(
             "finish",
@@ -193,7 +192,6 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
         color: Colors.white,
       );
     }
-
     return HexagonWidgetBuilder(
       color: Colors.amber,
       padding: 2.0,

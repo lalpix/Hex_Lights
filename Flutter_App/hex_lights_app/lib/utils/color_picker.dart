@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
-Future<Color> myColorPicker(BuildContext context, Color originalColor) async {
+Future<Color> myColorPicker(BuildContext context, Color originalColor,String text) async {
   Color? c = await showDialog<Color?>(
       context: context,
       builder: (BuildContext context) {
         Color tmp = originalColor;
         return AlertDialog(
-          title: const Text('Pick a color!'),
+          title: Text(text),
           content: SingleChildScrollView(
             child: ColorPicker(
               paletteType: PaletteType.hueWheel,

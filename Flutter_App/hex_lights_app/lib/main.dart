@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hex_lights_app/utils/hexagon_model.dart';
 import 'package:hive/hive.dart';
-//import 'set_screen.dart';
 import 'layout_set_screen.dart';
 import 'home_screen.dart';
 import 'package:hive/hive.dart';
@@ -33,12 +32,16 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        // Define the default brightness and colors.
+        brightness: Brightness.dark,
+        primarySwatch: Colors.orange,
+        fontFamily: 'Raleway',
       ),
       initialRoute: route,
       routes: {
         '/home': (context) => const HomeScreen(),
-        '/setLayout': (context) => const LayoutSetScreen(title: 'Set shape page'),
+        '/setLayout': (context) => const LayoutSetScreen(),
+        //'/setSignleHex': (context) => const SingleSetScreen(title: 'Set shape page'),
       },
     );
   }

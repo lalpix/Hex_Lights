@@ -1,33 +1,17 @@
-enum AnimationMode {
-  TopBottom,
-  LeftRight,
-  MeetInMidle,
-  DirectionCircle,
-}
-
-String animationName(AnimationMode a) {
-  switch (a) {
-    case AnimationMode.TopBottom:
-      return 'Plnění nahoru a dolů';
-    case AnimationMode.LeftRight:
-      return 'Plnění zleva a zprava';
-    case AnimationMode.MeetInMidle:
-      return 'Souběh uprostřed';
-    case AnimationMode.DirectionCircle:
-      return 'Plnění všesměrové';
-  }
-}
 
 enum Mode {
   Stationar, // all hex same color
-  //Rotation,  // all hex rotating
   RotationOuter,
   StationarOuter,
   RandColorRandHex,
   RainbowSwipeVert,
   RainbowSwipeHorz,
-  AudioBeatReact,
-  AudioFreqPool
+  AudioBeatReact,//
+  AudioFreqPool,//
+  TopBottom,
+  LeftRight,
+  MeetInMidle,
+  DirectionCircle,
 }
 String modeName(Mode m) {
   switch (m) {
@@ -47,5 +31,13 @@ String modeName(Mode m) {
       return 'Reakce na beat';
     case Mode.AudioFreqPool:
       return 'Reakce na frekvenci';
+    case Mode.TopBottom:
+      return 'Plnění nahoru a dolů';
+    case Mode.LeftRight:
+      return 'Plnění zleva a zprava';
+    case Mode.MeetInMidle:
+      return 'Souběh uprostřed';
+    case Mode.DirectionCircle:
+      return 'Plnění všesměrové';
   }
 }
