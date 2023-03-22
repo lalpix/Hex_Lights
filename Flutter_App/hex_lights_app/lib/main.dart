@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:hex_lights_app/single_set_screen.dart';
 import 'package:hex_lights_app/utils/hexagon_model.dart';
 import 'package:hive/hive.dart';
 import 'layout_set_screen.dart';
@@ -41,7 +42,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/home': (context) => const HomeScreen(),
         '/setLayout': (context) => const LayoutSetScreen(),
-        //'/setSignleHex': (context) => const SingleSetScreen(title: 'Set shape page'),
+        '/setSignleHex': (context) => const SingleSetScreen(),
       },
     );
   }

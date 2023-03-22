@@ -4,7 +4,7 @@ import '../hexagon_grid/dir_lists.dart';
 
 class Hexagon {
   //this is for sending the list, data in regular axial patter
-  Coordinates coord;
+  Coordinates coord= Coordinates.zero;
   int seqId;
   //this is for converting to Horz grid layout
   Coordinates? dirToPrevious;
@@ -12,7 +12,6 @@ class Hexagon {
   Coordinates uiCoord = Coordinates.zero;
 
   Hexagon(this.coord, this.seqId);
-
   Coordinates dirTo(Hexagon dest) {
     Hexagon start = this;
     return dirForDoubled.firstWhere((element) => start.coord + element == dest.coord);
@@ -30,6 +29,9 @@ class Hexagon {
 
   String toStringForDBS() {
     return ("$seqId,${coord.q},${coord.r}");
+  }
+   String toUiStringForDBS() {
+    return ("$seqId,${uiCoord.q},${uiCoord.r}");
   }
 }
 

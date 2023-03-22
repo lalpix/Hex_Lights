@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class ColapsableListTile extends StatefulWidget {
   ColapsableListTile({required this.body, this.name, super.key});
   Widget body;
@@ -19,7 +20,7 @@ class _MyListTileState extends State<ColapsableListTile> {
         //set border radius more than 50% of height and width to make circle
       ),
       child: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:hex_lights_app/utils/button_mode_child.dart';
 import 'package:hex_lights_app/utils/color_picker.dart';
 import 'package:hex_lights_app/widgets/clickable_box.dart';
-import 'package:hex_lights_app/widgets/colapsable_listTile.dart';
+import 'package:hex_lights_app/widgets/colapsable_list_tile.dart';
 import 'package:hive/hive.dart';
 import 'common_data.dart';
 import 'mymqtt.dart';
 
 class HomeScreen extends StatefulWidget {
+  //pass main color from homescreen
   const HomeScreen({super.key});
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -165,7 +166,9 @@ class _HomeScreenState extends State<HomeScreen> {
           //set border radius more than 50% of height and width to make circle
         ),
         child: ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.pushNamed(context, '/setSignleHex');
+          },
           child: const Padding(
             padding: EdgeInsets.all(20.0),
             child: Text('Nastavit jednotlivě'),

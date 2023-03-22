@@ -27,7 +27,7 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
     _setupFreshHexList();
     _loadHexGridData();
     super.initState();
-    hexGridHelpers.calculateCoordsForUi(hexList);
+    hexGridHelpers.calculateCoordsForUi(hexList, false);
   }
 
   _addHexMoudle(Coordinates c) {
@@ -45,7 +45,7 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
     newHex.dirToPrevious = newHex.dirTo(hexBefore);
     setState(() {
       hexList.add(newHex);
-      hexGridHelpers.calculateCoordsForUi(hexList);
+      hexGridHelpers.calculateCoordsForUi(hexList, false);
     });
   }
 
@@ -56,20 +56,28 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
     lastId = lastId - 1;
     setState(() {
       hexList.removeLast();
-      hexGridHelpers.calculateCoordsForUi(hexList);
+      hexGridHelpers.calculateCoordsForUi(hexList, false);
     });
   }
 
-  _saveHexGridData() async {
+  Future<void> _saveHexGridData() async {
+    final uiBox = await Hive.openBox('HexUiLayoutStorage');
     final box = await Hive.openBox('HexLayoutStorage');
     List<String>? stringList = List.empty(growable: true);
+    List<String>? uiStringList = List.empty(growable: true);
+    hexGridHelpers.calculateCoordsForUi(hexList, true);
     for (Hexagon hex in hexList) {
+      uiStringList.add(hex.toUiStringForDBS());
       if (hex.seqId > 1) {
         stringList.add(hex.toStringForDBS());
       }
     }
-    box.clear();
-    box.put('list', stringList);
+    hexGridHelpers.calculateCoordsForUi(hexList, false);
+
+    await uiBox.clear();
+    await box.clear();
+    await uiBox.put('list', uiStringList);
+    await box.put('list', stringList);
   }
 
   _loadHexGridData() async {
@@ -88,7 +96,7 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
         hexList.add(newHex);
       }
       setState(() {
-        hexGridHelpers.calculateCoordsForUi(hexList);
+        hexGridHelpers.calculateCoordsForUi(hexList, false);
       });
     } else {
       print('Loading data: no data found => fresh start');
@@ -140,8 +148,8 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
         ),
         const Expanded(child: Text('')),
         OutlinedButton(
-          onPressed: () => {
-            _saveHexGridData(),
+          onPressed: () async => {
+            await _saveHexGridData(),
             Navigator.pop(context),
           },
           child: const Text(
@@ -184,7 +192,6 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
     bool canBeRemoved = idx == lastId && idx > 1;
     Hexagon h = hexList.firstWhere((element) => element.seqId == idx);
     if (idx == 0) {
-      print('got here');
       return HexagonWidgetBuilder(
         padding: 2.0,
         cornerRadius: 2.0,

@@ -1,9 +1,10 @@
+// ignore_for_file: constant_identifier_names
+
 import 'dart:io';
 import 'dart:math';
 
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
-
 enum MqttCurrentConnectionState {
   IDLE,
   CONNECTING,

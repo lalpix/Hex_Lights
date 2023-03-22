@@ -1,5 +1,6 @@
 import 'package:hex_lights_app/utils/hexagon_model.dart';
 import 'package:hexagon/hexagon.dart';
+// ignore: depend_on_referenced_packages
 import 'package:collection/collection.dart'; // You have to add this manually, for some reason it cannot be added automatically
 import 'dir_lists.dart';
 
@@ -8,11 +9,10 @@ class HexGridHelpers {
   int height = 3;
   List<Coordinates> possibleNewUiList = List.empty(growable: true);
 
-  void calculateCoordsForUi(List<Hexagon> hexList) {
+  void calculateCoordsForUi(List<Hexagon> hexList, bool isForSetSingle) {
     bool widthOffset = false;
     hexList.sort((a, b) => a.seqId.compareTo(b.seqId));
-
-    Hexagon lastHex = hexList.last;
+    //Hexagon lastHex = hexList.last;
     //listWith New
     List<Coordinates> coordList = [...coordListFromHex(hexList), ...possibleNew(hexList, false)];
     calcWidthAndHeight(coordList);
@@ -26,7 +26,7 @@ class HexGridHelpers {
     // print('most left $mostLeft');
     // print('most left with new $mostLeftWithNew');
     //if adept is more on left than main boddy then add offset
-    if (mostLeft.q > mostLeftWithNew.q) {
+    if (mostLeft.q > mostLeftWithNew.q && !isForSetSingle) {
       widthOffset = true;
       // print('adding width offset');
     }
@@ -108,20 +108,28 @@ class HexGridHelpers {
 
   void calcWidthAndHeight(List<Coordinates> list) {
     list.sort((a, b) => a.q.compareTo(b.q));
-    int width_tmp = list.last.q - list.first.q;
+    int widthTmp = list.last.q - list.first.q;
 
     list.sort((a, b) => a.r.compareTo(b.r));
 
-    int height_tmp = list.last.r - list.first.r;
-    width = width_tmp < 3 ? 3 : width_tmp + 1;
-    height = height_tmp < 3 ? 3 : height_tmp + 1;
+    int heightTmp = list.last.r - list.first.r;
+    width = widthTmp < 3 ? 3 : widthTmp + 1;
+    height = heightTmp < 3 ? 3 : heightTmp + 1;
     if (height == 6) {
       width = width >= 4 ? width : 4;
     }
     if (height >= 7) {
       width = width >= 5 ? width : 5;
     }
-    print('new height $height and width $width');
+    // print('new height $height and width $width');
+  }
+
+  List<int> calcWidthAndHeightFromUi(List<Coordinates> list) {
+    list.sort((a, b) => a.q.compareTo(b.q));
+    int width = list.last.q - list.first.q + 1;
+    list.sort((a, b) => a.r.compareTo(b.r));
+    int height = list.last.r - list.first.r + 1;
+    return [width, height];
   }
 
   Coordinates dirConversion(
