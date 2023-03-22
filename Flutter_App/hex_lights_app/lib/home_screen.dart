@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hex_lights_app/utils/button_mode_child.dart';
 import 'package:hex_lights_app/utils/color_picker.dart';
+import 'package:hex_lights_app/utils/routing_arguments.dart';
 import 'package:hex_lights_app/widgets/clickable_box.dart';
 import 'package:hex_lights_app/widgets/colapsable_list_tile.dart';
 import 'package:hive/hive.dart';
@@ -18,7 +19,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-
     mqttClient.prepareMqttClient();
   }
 
@@ -42,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () async {
               Color color = await myColorPicker(context, primaryColor, 'Primární barva');
               setState(() => primaryColor = color);
+              mqttClient.publishMessage('primaryColor', primaryColor.toString());
             },
           ),
           const SizedBox(
@@ -53,7 +54,10 @@ class _HomeScreenState extends State<HomeScreen> {
             color: secondaryColor,
             onTap: () async {
               Color color = await myColorPicker(context, secondaryColor, 'Sekundární barva');
-              setState(() => secondaryColor = color);
+              setState(() {
+                secondaryColor = color;
+                mqttClient.publishMessage('secondaryColor', secondaryColor.toString());
+              });
             },
           ),
         ]),
@@ -64,48 +68,73 @@ class _HomeScreenState extends State<HomeScreen> {
           clickableBox(
               chosen: selectedMode == Mode.Stationar,
               text: 'Celá plocha',
-              onTap: () => setState(() => selectedMode = Mode.Stationar)),
+              onTap: () {
+                setState(() => selectedMode = Mode.Stationar);
+                mqttClient.publishMessage('Mode', 'Stationar');
+              }),
           const SizedBox(
             width: 10,
           ),
           clickableBox(
-              chosen: selectedMode == Mode.StationarOuter,
-              text: 'Pouze okraje',
-              onTap: () => setState(() => selectedMode = Mode.StationarOuter)),
+            chosen: selectedMode == Mode.StationarOuter,
+            text: 'Pouze okraje',
+            onTap: () => setState(() {
+              selectedMode = Mode.StationarOuter;
+              mqttClient.publishMessage('Mode', 'StationarOuter');
+            }),
+          )
         ]),
       ),
       ColapsableListTile(
           name: 'Animace plněním',
           body: Column(
             children: [
-              Row(children: [
-                clickableBox(
-                    chosen: selectedMode == Mode.TopBottom,
-                    widget: buttonModeChild(Mode.TopBottom),
-                    onTap: () => setState(() => selectedMode = Mode.TopBottom)),
-                const SizedBox(
-                  width: 10,
-                ),
-                clickableBox(
+              Row(
+                children: [
+                  clickableBox(
+                      chosen: selectedMode == Mode.TopBottom,
+                      widget: buttonModeChild(Mode.TopBottom),
+                      onTap: () {
+                        setState(() => selectedMode = Mode.TopBottom);
+                        mqttClient.publishMessage('Mode', 'TopBottom');
+                      }),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  clickableBox(
                     chosen: selectedMode == Mode.DirectionCircle,
                     widget: buttonModeChild(Mode.DirectionCircle),
-                    onTap: () => setState(() => selectedMode = Mode.DirectionCircle)),
-              ]),
+                    onTap: () {
+                      setState(() => selectedMode = Mode.DirectionCircle);
+                      mqttClient.publishMessage('Mode', 'DirectionCircle');
+                    },
+                  ),
+                ],
+              ),
               const SizedBox(height: 5),
-              Row(children: [
-                clickableBox(
-                  chosen: selectedMode == Mode.LeftRight,
-                  widget: buttonModeChild(Mode.LeftRight),
-                  onTap: () => setState(() => selectedMode = Mode.LeftRight),
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                clickableBox(
+              Row(
+                children: [
+                  clickableBox(
+                    chosen: selectedMode == Mode.LeftRight,
+                    widget: buttonModeChild(Mode.LeftRight),
+                    onTap: () {
+                      setState(() => selectedMode = Mode.LeftRight);
+                      mqttClient.publishMessage('Mode', 'LeftRight');
+                    },
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  clickableBox(
                     chosen: selectedMode == Mode.MeetInMidle,
                     widget: buttonModeChild(Mode.MeetInMidle),
-                    onTap: () => setState(() => selectedMode = Mode.MeetInMidle)),
-              ]),
+                    onTap: () {
+                      setState(() => selectedMode = Mode.MeetInMidle);
+                      mqttClient.publishMessage('Mode', 'MeetInMidle');
+                    },
+                  ),
+                ],
+              ),
             ],
           )),
       ColapsableListTile(
@@ -116,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onChanged: (value) => setState(
             () {
               speedSliderValue = value;
-              //mqttClient.publishMessage('speed', value.toString());
+              mqttClient.publishMessage('speed', value.toString());
             },
           ),
         ),
@@ -129,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onChanged: (value) => setState(
             () {
               fadeSliderValue = value;
-              //mqttClient.publishMessage('speed', value.toString());
+              mqttClient.publishMessage('fade', value.toString());
             },
           ),
         ),
@@ -144,6 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
               setState(() {
                 selectedMode = Mode.AudioFreqPool;
               });
+              mqttClient.publishMessage('Mode', 'AudioFreqPool');
             },
           ),
           const SizedBox(
@@ -156,6 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
               setState(() {
                 selectedMode = Mode.AudioBeatReact;
               });
+              mqttClient.publishMessage('Mode', 'AudioBeatReact');
             },
           ),
         ]),
@@ -167,7 +198,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: ElevatedButton(
           onPressed: () {
-            Navigator.pushNamed(context, '/setSignleHex',arguments: primaryColor);
+            Navigator.pushNamed(context, '/setSignleHex',
+                arguments:
+                    SingleSetArguments(primaryColor: primaryColor, clientWrapper: mqttClient));
           },
           child: const Padding(
             padding: EdgeInsets.all(20.0),
@@ -181,12 +214,35 @@ class _HomeScreenState extends State<HomeScreen> {
         appBar: AppBar(
           title: const Text('Hex light control center'),
           actions: [
-            IconButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/setLayout');
-                  // Navigate to the second screen when tapped.
+            PopupMenuButton(
+                child: const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Icon(Icons.settings),
+                ),
+                itemBuilder: (context) {
+                  return const [
+                    PopupMenuItem<int>(
+                      value: 0,
+                      child: Text("Upravit rozložení"),
+                    ),
+                    PopupMenuItem<int>(
+                      value: 1,
+                      child: Text("Opakovat pokus o připojení"),
+                    ),
+                  ];
                 },
-                icon: const Icon(Icons.settings))
+                onSelected: (result) {
+                  switch (result) {
+                    case 0:
+                      Navigator.of(context).pushNamed('/setLayout', arguments: mqttClient);
+                      break;
+                    case 1:
+                      mqttClient.prepareMqttClient();
+                      break;
+                  }
+                })
+
+            // Navigate to the second screen when tapped.
           ],
         ),
         body: Padding(

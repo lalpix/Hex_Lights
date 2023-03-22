@@ -13,7 +13,6 @@ void main() async {
 
   var dir = await getApplicationDocumentsDirectory();
   var path = dir.path;
-  print('path is $path');
   Hive.init(path);
   // final box = await Hive.openBox('HexLayoutStorage');
   // await box.clear();
@@ -29,7 +28,6 @@ class MyApp extends StatelessWidget {
   final String route;
   @override
   Widget build(BuildContext context) {
-    
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -40,7 +38,7 @@ class MyApp extends StatelessWidget {
       initialRoute: route,
       routes: {
         '/home': (context) => const HomeScreen(),
-        '/setLayout': (context) => const LayoutSetScreen(),
+        '/setLayout': (context) => LayoutSetScreen(),
         '/setSignleHex': (context) => const SingleSetScreen(),
       },
     );

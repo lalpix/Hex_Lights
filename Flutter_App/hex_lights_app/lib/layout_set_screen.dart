@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hex_lights_app/hexagon_grid/dir_lists.dart';
 import 'package:hex_lights_app/hexagon_grid/hexagon_grid_helpers.dart';
+import 'package:hex_lights_app/mymqtt.dart';
 import 'package:hexagon/hexagon.dart';
 import 'package:hex_lights_app/utils/hexagon_model.dart';
 import 'package:hive/hive.dart';
-import 'package:collection/collection.dart'; // You have to add this manually, for some reason it cannot be added automatically
+import 'package:collection/collection.dart';
+import 'package:mqtt_client/mqtt_client.dart'; // You have to add this manually, for some reason it cannot be added automatically
 
 // USING AXIAL COORDINATES  https://www.redblobgames.com/grids/hexagons/#coordinates-offset
 
@@ -13,6 +15,7 @@ class LayoutSetScreen extends StatefulWidget {
   const LayoutSetScreen({
     super.key,
   });
+
   @override
   State<LayoutSetScreen> createState() => _LayoutSetScreenState();
 }
@@ -112,6 +115,9 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final MQTTClientWrapper client =
+        ModalRoute.of(context)!.settings.arguments as MQTTClientWrapper;
+    List<String> data;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Nastavte svoje rozložení'),
@@ -151,6 +157,15 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
         OutlinedButton(
           onPressed: () async => {
             await _saveHexGridData(),
+            for (var hex in hexList)
+              {
+                if (hex.seqId != 0)
+                  {
+                    //-2 is offset for the base that is acounted here but not on device
+                    client.publishMessage(
+                        'layout', 'id:${hex.seqId},q:${hex.coord.q},r:${hex.coord.r - 2}')
+                  }
+              },
             Navigator.pop(context),
           },
           child: const Text(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hex_lights_app/hexagon_grid/hexagon_grid_helpers.dart';
+import 'package:hex_lights_app/mymqtt.dart';
 import 'package:hex_lights_app/utils/color_picker.dart';
+import 'package:hex_lights_app/utils/routing_arguments.dart';
 import 'package:hexagon/hexagon.dart';
 import 'package:hive/hive.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -10,9 +12,7 @@ import 'package:collection/collection.dart'; // You have to add this manually, f
 class SingleSetScreen extends StatefulWidget {
   const SingleSetScreen({
     super.key,
-    this.baseColor,
   });
-  final Color? baseColor;
   @override
   State<SingleSetScreen> createState() => _SingleSetScreenState();
 }
@@ -45,10 +45,9 @@ class _SingleSetScreenState extends State<SingleSetScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)!.settings.arguments as Color?;
-    if (args != null) {
-      baseColor = args;
-    }
+    final args = ModalRoute.of(context)!.settings.arguments as SingleSetArguments;
+    baseColor = args.color;
+    final clinet = args.client;
     return FutureBuilder(
         future: loadHexGridData(),
         builder: (context, snapshot) {
@@ -71,19 +70,20 @@ class _SingleSetScreenState extends State<SingleSetScreen> {
                       rows: widthAndHeight[1],
                       columns: widthAndHeight[0],
                       buildTile: (q, r) =>
-                          _myHexWidgetBuilder(Coordinates.axial(q, r), snapshot.data),
+                          _myHexWidgetBuilder(Coordinates.axial(q, r), snapshot.data, clinet),
                     ),
                   ],
                 ),
               ),
             ),
-            floatingActionButton:
-                ElevatedButton(child: const Text('Uložit konfiguraci'), onPressed: () {}), //TODO save to
+            // floatingActionButton: ElevatedButton(
+            //     child: const Text('Uložit konfiguraci'), onPressed: () {}), //TODO save to
           );
         });
   }
 
-  HexagonWidgetBuilder _myHexWidgetBuilder(Coordinates c, Map<int, Coordinates>? map) {
+  HexagonWidgetBuilder _myHexWidgetBuilder(
+      Coordinates c, Map<int, Coordinates>? map, MQTTClientWrapper clientWrapper) {
     map = map ?? {};
     bool inMainBody = map.containsValue(c);
     Color color = Colors.transparent;
@@ -98,8 +98,7 @@ class _SingleSetScreenState extends State<SingleSetScreen> {
     }
     if (inMainBody && key == 0) {
       return HexagonWidgetBuilder(
-        child: SvgPicture.asset('assets/line.svg',
-            semanticsLabel: 'hex base'), //const Image(image: AssetImage('assets/line.png')),
+        child: SvgPicture.asset('assets/line.svg', semanticsLabel: 'hex base'),
         color: Colors.transparent,
         padding: 2.0,
         cornerRadius: 2.0,
@@ -112,13 +111,13 @@ class _SingleSetScreenState extends State<SingleSetScreen> {
       cornerRadius: 2.0,
       child: inMainBody
           ? TextButton(
-              child: SizedBox.expand(),
+              child: const SizedBox.expand(),
               onPressed: () async {
                 var c = await myColorPicker(context, color, 'Vyberte barvu pro tento modul');
                 setState(() {
                   colorMap[key] = c;
                 });
-                print('send message to color change');
+                clientWrapper.publishMessage('singleColor', '$key:$c');
               },
             )
           : const SizedBox.shrink(),

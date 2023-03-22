@@ -5,13 +5,8 @@ import 'dart:math';
 
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
-enum MqttCurrentConnectionState {
-  IDLE,
-  CONNECTING,
-  CONNECTED,
-  DISCONNECTED,
-  ERROR_WHEN_CONNECTING
-}
+
+enum MqttCurrentConnectionState { IDLE, CONNECTING, CONNECTED, DISCONNECTED, ERROR_WHEN_CONNECTING }
 
 enum MqttSubscriptionState { IDLE, SUBSCRIBED }
 
@@ -27,8 +22,7 @@ class MQTTClientWrapper {
     'brightness',
     'speed'
   ];
-  static const _chars =
-      'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  static const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
   final Random _rnd = Random();
   late MqttServerClient client;
 
@@ -58,21 +52,18 @@ class MQTTClientWrapper {
       connectionState = MqttCurrentConnectionState.CONNECTED;
       print('client connected');
     } else {
-      print(
-          'ERROR client connection failed - disconnecting, status is ${client.connectionStatus}');
+      print('ERROR client connection failed - disconnecting, status is ${client.connectionStatus}');
       connectionState = MqttCurrentConnectionState.ERROR_WHEN_CONNECTING;
       client.disconnect();
     }
   }
 
-  String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
-      length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+  String getRandomString(int length) => String.fromCharCodes(
+      Iterable.generate(length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
 
   void _setupMqttClient() {
-    client = MqttServerClient.withPort(
-        '40f92d98eff64948bc91d8aeed757337.s2.eu.hivemq.cloud',
-        'MobileApp_${getRandomString(5)}',
-        8883,
+    client = MqttServerClient.withPort('40f92d98eff64948bc91d8aeed757337.s2.eu.hivemq.cloud',
+        'MobileApp_${getRandomString(5)}', 8883,
         maxConnectionAttempts: 20);
     // the next 2 lines are necessary to connect with tls, which is used by HiveMQ Cloud
     client.secure = true;
@@ -86,7 +77,7 @@ class MQTTClientWrapper {
     print('Subscribing to the $topicName topic');
     client.subscribe(topicName, MqttQos.atMostOnce);
     client.updates?.listen((List<MqttReceivedMessage<MqttMessage>> c) {
-      //here add msg handler 
+      //here add msg handler
       //probably not needed for app
       final MqttMessage recMess = c[0].payload;
       var message = recMess.toString;
@@ -98,6 +89,7 @@ class MQTTClientWrapper {
 
   void publishMessage(String topic, String message) {
     final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
+    print('topic: $topic msg: $message');
     builder.addString(message);
     client.publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
   }

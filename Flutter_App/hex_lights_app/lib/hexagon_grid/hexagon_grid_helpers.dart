@@ -69,7 +69,8 @@ class HexGridHelpers {
     }
 
     //------HEIGHT OFFSET-----------
-    List<Coordinates> uiCoordList = [...uiCoordListFromHex(hexList), ...possibleNew(hexList, true)];
+    List<Coordinates> uiCoordList = uiCoordListFromHex(hexList);
+    if (!isForSetSingle) uiCoordList.addAll(possibleNew(hexList, true));
     for (var c in uiCoordList) {
       if (c.r < heightOffset) {
         heightOffset = c.r;
