@@ -167,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: ElevatedButton(
           onPressed: () {
-            Navigator.pushNamed(context, '/setSignleHex');
+            Navigator.pushNamed(context, '/setSignleHex',arguments: primaryColor);
           },
           child: const Padding(
             padding: EdgeInsets.all(20.0),

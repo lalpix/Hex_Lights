@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hex_lights_app/hexagon_grid/dir_lists.dart';
 import 'package:hex_lights_app/hexagon_grid/hexagon_grid_helpers.dart';
 import 'package:hexagon/hexagon.dart';
@@ -195,8 +196,8 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
       return HexagonWidgetBuilder(
         padding: 2.0,
         cornerRadius: 2.0,
-        child: const Image(image: AssetImage('assets/line.png')),
-        color: Colors.white,
+        child: SvgPicture.asset('assets/line.svg', semanticsLabel: 'hex base'),
+        color: Colors.transparent,
       );
     }
     return HexagonWidgetBuilder(

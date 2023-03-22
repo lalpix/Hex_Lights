@@ -27,13 +27,12 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key, required this.route});
   final String route;
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // Define the default brightness and colors.
         brightness: Brightness.dark,
         primarySwatch: Colors.orange,
         fontFamily: 'Raleway',

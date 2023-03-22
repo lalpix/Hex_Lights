@@ -128,7 +128,7 @@ class HexGridHelpers {
     list.sort((a, b) => a.q.compareTo(b.q));
     int width = list.last.q - list.first.q + 1;
     list.sort((a, b) => a.r.compareTo(b.r));
-    int height = list.last.r - list.first.r + 1;
+    int height = list.last.r - list.first.r + 2;
     return [width, height];
   }
 
