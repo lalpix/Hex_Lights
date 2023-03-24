@@ -118,7 +118,9 @@ class _SingleSetScreenState extends State<SingleSetScreen> {
                 setState(() {
                   colorMap[key] = c;
                 });
-                clientWrapper.publishMessage(Topics.singleHexColor.name, '$key:$c');
+
+                clientWrapper.publishMessage(Topics.singleHexColor.name,
+                    '$key::${c.red.toInt()},${c.blue.toInt()},${c.green.toInt()}');
               },
             )
           : const SizedBox.shrink(),
