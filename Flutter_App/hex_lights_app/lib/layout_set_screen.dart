@@ -119,6 +119,7 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
     final MQTTClientWrapper client =
         ModalRoute.of(context)!.settings.arguments as MQTTClientWrapper;
     List<String> data;
+    StringBuffer layoutMsg = StringBuffer();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Nastavte svoje rozložení'),
@@ -158,15 +159,17 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
         OutlinedButton(
           onPressed: () async => {
             await _saveHexGridData(),
+            layoutMsg.clear(),
+            layoutMsg.write('${hexList.length}::'),
             for (var hex in hexList)
               {
-                if (hex.seqId != 0)
+                if (hex.seqId != 0)//dont include base
                   {
-                    //-2 is offset for the base that is acounted here but not on device
-                    client.publishMessage(
-                        Topics.layout.name, 'id:${hex.seqId},q:${hex.coord.q},r:${hex.coord.r - 2}')
+                    //-2 is offset for the base that is acounted here but not on device                   
+                    layoutMsg.write('${hex.coord.q},${hex.coord.r - 2}|'),
                   }
               },
+            client.publishMessage(Topics.layout.name, layoutMsg.toString()),
             Navigator.pop(context),
           },
           child: const Text(

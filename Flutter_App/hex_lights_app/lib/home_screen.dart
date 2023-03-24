@@ -30,10 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late Box box;
   MQTTClientWrapper mqttClient = MQTTClientWrapper();
 
-  @override
-  Widget build(BuildContext context) {
-    List<Widget> mainWidgetList = [
-      ColapsableListTile(
+  colorWidget() => ColapsableListTile(
         body: Row(children: [
           clickableBox(
             chosen: false,
@@ -61,8 +58,9 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ]),
-      ),
-      ColapsableListTile(
+      );
+
+  menuItemsBezEfektu() => ColapsableListTile(
         name: 'Bez efektu',
         body: Row(children: [
           clickableBox(
@@ -84,60 +82,60 @@ class _HomeScreenState extends State<HomeScreen> {
             }),
           )
         ]),
-      ),
-      ColapsableListTile(
-          name: 'Animace plněním',
-          body: Column(
+      );
+  menuItemsAnimFill() => ColapsableListTile(
+      name: 'Animace plněním',
+      body: Column(
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  clickableBox(
-                      chosen: selectedMode == Mode.TopBottom,
-                      widget: buttonModeChild(Mode.TopBottom),
-                      onTap: () {
-                        setState(() => selectedMode = Mode.TopBottom);
-                        mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
-                      }),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  clickableBox(
-                    chosen: selectedMode == Mode.DirectionCircle,
-                    widget: buttonModeChild(Mode.DirectionCircle),
-                    onTap: () {
-                      setState(() => selectedMode = Mode.DirectionCircle);
-                     mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
-                    },
-                  ),
-                ],
+              clickableBox(
+                  chosen: selectedMode == Mode.TopBottom,
+                  widget: buttonModeChild(Mode.TopBottom),
+                  onTap: () {
+                    setState(() => selectedMode = Mode.TopBottom);
+                    mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
+                  }),
+              const SizedBox(
+                width: 10,
               ),
-              const SizedBox(height: 5),
-              Row(
-                children: [
-                  clickableBox(
-                    chosen: selectedMode == Mode.LeftRight,
-                    widget: buttonModeChild(Mode.LeftRight),
-                    onTap: () {
-                      setState(() => selectedMode = Mode.LeftRight);
-                      mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
-                    },
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  clickableBox(
-                    chosen: selectedMode == Mode.MeetInMidle,
-                    widget: buttonModeChild(Mode.MeetInMidle),
-                    onTap: () {
-                      setState(() => selectedMode = Mode.MeetInMidle);
-                      mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
-                    },
-                  ),
-                ],
+              clickableBox(
+                chosen: selectedMode == Mode.DirectionCircle,
+                widget: buttonModeChild(Mode.DirectionCircle),
+                onTap: () {
+                  setState(() => selectedMode = Mode.DirectionCircle);
+                  mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
+                },
               ),
             ],
-          )),
-      ColapsableListTile(
+          ),
+          const SizedBox(height: 5),
+          Row(
+            children: [
+              clickableBox(
+                chosen: selectedMode == Mode.LeftRight,
+                widget: buttonModeChild(Mode.LeftRight),
+                onTap: () {
+                  setState(() => selectedMode = Mode.LeftRight);
+                  mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
+                },
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              clickableBox(
+                chosen: selectedMode == Mode.MeetInMidle,
+                widget: buttonModeChild(Mode.MeetInMidle),
+                onTap: () {
+                  setState(() => selectedMode = Mode.MeetInMidle);
+                  mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
+                },
+              ),
+            ],
+          ),
+        ],
+      ));
+  animSpeedWidget() => ColapsableListTile(
         name: 'Rychlost animace',
         body: Slider(
           max: 100,
@@ -149,8 +147,8 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ),
-      ),
-      ColapsableListTile(
+      );
+  brigtnessWidget() => ColapsableListTile(
         name: 'Tmavost',
         body: Slider(
           max: 100,
@@ -162,8 +160,8 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ),
-      ),
-      ColapsableListTile(
+      );
+  soundAnimWidget() => ColapsableListTile(
         name: 'Hudebni animace',
         body: Row(children: [
           clickableBox(
@@ -190,11 +188,19 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ]),
-      ),
+      );
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> mainWidgetList = [
+      colorWidget(),
+      menuItemsBezEfektu(),
+      menuItemsAnimFill(),
+      animSpeedWidget(),
+      brigtnessWidget(),
+      soundAnimWidget(),
       Card(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
-          //set border radius more than 50% of height and width to make circle
         ),
         child: ElevatedButton(
           onPressed: () {

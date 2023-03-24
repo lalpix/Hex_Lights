@@ -6,6 +6,7 @@ enum Topics {
   fade,
   speed,
   mode,
+  power,
 }
 
 enum Mode {
