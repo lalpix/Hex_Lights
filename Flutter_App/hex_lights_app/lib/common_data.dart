@@ -1,3 +1,12 @@
+enum Topics {
+  singleHexColor,
+  primaryColor,
+  secondaryColor,
+  layout,
+  fade,
+  speed,
+  mode,
+}
 
 enum Mode {
   Stationar, // all hex same color
@@ -6,13 +15,14 @@ enum Mode {
   RandColorRandHex,
   RainbowSwipeVert,
   RainbowSwipeHorz,
-  AudioBeatReact,//
-  AudioFreqPool,//
+  AudioBeatReact, //
+  AudioFreqPool, //
   TopBottom,
   LeftRight,
   MeetInMidle,
   DirectionCircle,
 }
+
 String modeName(Mode m) {
   switch (m) {
     case Mode.Stationar:

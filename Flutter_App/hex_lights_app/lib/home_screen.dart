@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () async {
               Color color = await myColorPicker(context, primaryColor, 'Primární barva');
               setState(() => primaryColor = color);
-              mqttClient.publishMessage('primaryColor', primaryColor.toString());
+              mqttClient.publishMessage(Topics.primaryColor.name, primaryColor.toString());
             },
           ),
           const SizedBox(
@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Color color = await myColorPicker(context, secondaryColor, 'Sekundární barva');
               setState(() {
                 secondaryColor = color;
-                mqttClient.publishMessage('secondaryColor', secondaryColor.toString());
+                mqttClient.publishMessage(Topics.secondaryColor.name, secondaryColor.toString());
               });
             },
           ),
@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
               text: 'Celá plocha',
               onTap: () {
                 setState(() => selectedMode = Mode.Stationar);
-                mqttClient.publishMessage('Mode', 'Stationar');
+                mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
               }),
           const SizedBox(
             width: 10,
@@ -80,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
             text: 'Pouze okraje',
             onTap: () => setState(() {
               selectedMode = Mode.StationarOuter;
-              mqttClient.publishMessage('Mode', 'StationarOuter');
+              mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
             }),
           )
         ]),
@@ -96,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       widget: buttonModeChild(Mode.TopBottom),
                       onTap: () {
                         setState(() => selectedMode = Mode.TopBottom);
-                        mqttClient.publishMessage('Mode', 'TopBottom');
+                        mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
                       }),
                   const SizedBox(
                     width: 10,
@@ -106,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     widget: buttonModeChild(Mode.DirectionCircle),
                     onTap: () {
                       setState(() => selectedMode = Mode.DirectionCircle);
-                      mqttClient.publishMessage('Mode', 'DirectionCircle');
+                     mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
                     },
                   ),
                 ],
@@ -119,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     widget: buttonModeChild(Mode.LeftRight),
                     onTap: () {
                       setState(() => selectedMode = Mode.LeftRight);
-                      mqttClient.publishMessage('Mode', 'LeftRight');
+                      mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
                     },
                   ),
                   const SizedBox(
@@ -130,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     widget: buttonModeChild(Mode.MeetInMidle),
                     onTap: () {
                       setState(() => selectedMode = Mode.MeetInMidle);
-                      mqttClient.publishMessage('Mode', 'MeetInMidle');
+                      mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
                     },
                   ),
                 ],
@@ -145,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onChanged: (value) => setState(
             () {
               speedSliderValue = value;
-              mqttClient.publishMessage('speed', value.toString());
+              mqttClient.publishMessage(Topics.speed.name, value.toString());
             },
           ),
         ),
@@ -158,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onChanged: (value) => setState(
             () {
               fadeSliderValue = value;
-              mqttClient.publishMessage('fade', value.toString());
+              mqttClient.publishMessage(Topics.fade.name, value.toString());
             },
           ),
         ),
@@ -173,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
               setState(() {
                 selectedMode = Mode.AudioFreqPool;
               });
-              mqttClient.publishMessage('Mode', 'AudioFreqPool');
+              mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
             },
           ),
           const SizedBox(
@@ -186,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
               setState(() {
                 selectedMode = Mode.AudioBeatReact;
               });
-              mqttClient.publishMessage('Mode', 'AudioBeatReact');
+              mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
             },
           ),
         ]),

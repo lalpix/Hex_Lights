@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:hex_lights_app/common_data.dart';
 import 'package:hex_lights_app/hexagon_grid/dir_lists.dart';
 import 'package:hex_lights_app/hexagon_grid/hexagon_grid_helpers.dart';
 import 'package:hex_lights_app/mymqtt.dart';
@@ -163,7 +164,7 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
                   {
                     //-2 is offset for the base that is acounted here but not on device
                     client.publishMessage(
-                        'layout', 'id:${hex.seqId},q:${hex.coord.q},r:${hex.coord.r - 2}')
+                        Topics.layout.name, 'id:${hex.seqId},q:${hex.coord.q},r:${hex.coord.r - 2}')
                   }
               },
             Navigator.pop(context),

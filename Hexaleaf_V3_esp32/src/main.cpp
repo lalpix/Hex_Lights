@@ -13,9 +13,19 @@
 #include "keys.h"
 #include "structs.h"
 #include "HEX_controller.h"
+#include "common_data.h"
 
-char *topicArray[] = {"mode", "speed", "anim", "fade", "power", "brightness"};
-int num_topics = 6;
+char *topicArray[] = {
+    "mode",
+    "speed",
+    "fade",
+    "brightness",
+    "singleHexColor",
+    "primaryColor",
+    "secondaryColor",
+    "layout",
+};
+int num_topics = 8;
 Hex_controller *hexController;
 int localChangePeriod = 20000;
 long lastChangeMs = 0;

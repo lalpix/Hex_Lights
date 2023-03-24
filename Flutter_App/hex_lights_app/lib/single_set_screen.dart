@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hex_lights_app/common_data.dart';
 import 'package:hex_lights_app/hexagon_grid/hexagon_grid_helpers.dart';
 import 'package:hex_lights_app/mymqtt.dart';
 import 'package:hex_lights_app/utils/color_picker.dart';
@@ -117,7 +118,7 @@ class _SingleSetScreenState extends State<SingleSetScreen> {
                 setState(() {
                   colorMap[key] = c;
                 });
-                clientWrapper.publishMessage('singleColor', '$key:$c');
+                clientWrapper.publishMessage(Topics.singleHexColor.name, '$key:$c');
               },
             )
           : const SizedBox.shrink(),
