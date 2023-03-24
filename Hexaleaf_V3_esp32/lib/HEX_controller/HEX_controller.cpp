@@ -12,12 +12,12 @@ void Hex_controller::calculate_outer_leds()
         {0, -2},
     };
     // for all boxes
-    for (int i = 0; i < NUM_BOXES; i++)
+    for (int i = 0; i < Hex_controller::NumBoxes; i++)
     {
         int x = position[i][0];
         int y = position[i][1];
         // check all other boxes
-        for (int q = 0; q < NUM_BOXES; q++)
+        for (int q = 0; q < Hex_controller::NumBoxes; q++)
         {
             // for all directions
             for (int k = 0; k < 6; k++)
@@ -35,7 +35,7 @@ void Hex_controller::calculate_outer_leds()
             }
         }
     }
-    outer_led_num = TOTAL_LEDS - (num_of_contact_points * LED_IN_SIDE);
+    outer_led_num = Hex_controller::TotalLeds - (num_of_contact_points * LED_IN_SIDE);
 }
 void Hex_controller::create_outer_path()
 {
@@ -79,7 +79,7 @@ void Hex_controller::calculate_horz_vert_vals()
     VertMax = INT8_MIN;
     VertMin = INT8_MAX;
 
-    for (int i = 0; i < NUM_BOXES; i++)
+    for (int i = 0; i < Hex_controller::NumBoxes; i++)
     {
         if (position[i][1] > HorzMax)
         {
@@ -110,7 +110,7 @@ void Hex_controller::calculate_horz_vert_vals()
 void Hex_controller::fill_leds_on_Vert_lvl(int16_t lvl, CRGB clr)
 {
     // mySerial.printf("fill vert lvl %d\n", lvl);
-    for (uint8_t i = 0; i < NUM_BOXES; i++)
+    for (uint8_t i = 0; i < Hex_controller::NumBoxes; i++)
     {
         int line_lvl = lvl - (10 * position[i][0]);
         if (line_lvl >= 0 && line_lvl <= 15)
@@ -119,7 +119,7 @@ void Hex_controller::fill_leds_on_Vert_lvl(int16_t lvl, CRGB clr)
 }
 void Hex_controller::fill_leds_on_Hor_lvl(int16_t lvl, CRGB clr)
 {
-    for (uint8_t i = 0; i < NUM_BOXES; i++)
+    for (uint8_t i = 0; i < Hex_controller::NumBoxes; i++)
     {
         int line_lvl = lvl - (6 * position[i][1]);
         if (line_lvl >= 0 && line_lvl < 12)
@@ -129,7 +129,7 @@ void Hex_controller::fill_leds_on_Hor_lvl(int16_t lvl, CRGB clr)
 void Hex_controller::fill_same_dir_sides(CRGB clr, int direc)
 {
     direc = direc % 6;
-    for (int i = 0; i < NUM_BOXES; i++)
+    for (int i = 0; i < Hex_controller::NumBoxes; i++)
     { // side is <0-5>
         nodes[i]->fill_side(clr, leds, direc);
     }
@@ -138,14 +138,14 @@ void Hex_controller::fill_all_hex(CRGB clr)
 {
     // mySerial.print("filling all hex with clr: ");
     // printCRGB(clr);
-    for (int i = 0; i < TOTAL_LEDS; i++)
+    for (int i = 0; i < Hex_controller::TotalLeds; i++)
     {
         leds[i] = clr;
     }
 }
 void Hex_controller::fill_one_led_all_hex(CRGB clr, uint8_t n)
 {
-    for (int i = 0; i < NUM_BOXES; i++)
+    for (int i = 0; i < Hex_controller::NumBoxes; i++)
     {
         nodes[i]->fill_one_led(clr, leds, n);
     }
@@ -153,7 +153,7 @@ void Hex_controller::fill_one_led_all_hex(CRGB clr, uint8_t n)
 void Hex_controller::fill_one_side_one_hex(CRGB clr, uint8_t hex, uint8_t dir)
 {
     dir = dir % 6;
-    hex = hex % NUM_BOXES;
+    hex = hex % Hex_controller::NumBoxes;
     nodes[hex]->fill_side(clr, leds, dir);
 }
 // user input
@@ -200,12 +200,18 @@ void Hex_controller::set_rainbow(int r)
     // mySerial.print("rainbow is now: ");
     // mySerial.println(rainbow);
 }
+void Hex_controller::change_layout(int lenght,int coords[][2]){
+    for (size_t i = 0; i < lenght; i++)
+    {
+        /* code */
+    }
+    
+}
 // internal functions
 void Hex_controller::printCRGB(CRGB clr)
 {
     mySerial.printf("R: %x G: %x B: %x\n", clr.r, clr.g, clr.b);
 }
-
 void Hex_controller::change_mode(Mode m)
 {
     //Serial.printf("setting mode %d\n",m);
@@ -251,7 +257,7 @@ void Hex_controller::change_fill_mode(FillMode new_fill_mode)
         step = -1;
         break;
     case Fill_by_rotation_fTop:
-        step_count = TOTAL_LEDS;
+        step_count = Hex_controller::TotalLeds;
         step = -1;
         break;
     case Fill_by_lines_fLeft:
@@ -355,7 +361,7 @@ void Hex_controller::update()
             step_count++;
             if (step_count>5){//update every 10 ticks
                 step_count = 0;
-                uint8_t idx = rand() % NUM_BOXES;
+                uint8_t idx = rand() % Hex_controller::NumBoxes;
                 nodes[idx]->fill_hex(CHSV(random8(), random8(), 255), leds);
             }
             break;
@@ -406,7 +412,7 @@ void Hex_controller::update()
             float magnitudeBandWeightedMax = 0.0f;
 
             newAudioReading(magnitudeBand, &magnitudeBandWeightedMax);
-            for (int i = 0; i < NUM_BOXES; i++)
+            for (int i = 0; i < Hex_controller::NumBoxes; i++)
             {
                 int idx = i + kBeatDetectBandOffset;
 
@@ -440,7 +446,7 @@ void Hex_controller::update()
                 }
                 if (rainbow != 0)
                 {
-                    nodes[i]->fill_hex(CHSV((255 / NUM_BOXES) * i, 255, beatVisIntensity_[i]), leds);
+                    nodes[i]->fill_hex(CHSV((255 / Hex_controller::NumBoxes) * i, 255, beatVisIntensity_[i]), leds);
                 }
                 else
                 {
@@ -466,8 +472,8 @@ void Hex_controller::update()
             newAudioReading(magnitudeBand, &magnitudeBandWeightedMax);
             // mySerial.println("Audio reading DONE");
 
-            int poolsForOneHex = FREQ_BAND_COUNT / NUM_BOXES;
-            for (int i = 0; i < NUM_BOXES; i++)
+            int poolsForOneHex = FREQ_BAND_COUNT / Hex_controller::NumBoxes;
+            for (int i = 0; i < Hex_controller::NumBoxes; i++)
             {
                 float bandMagAvg = 0;
                 float bandAmpAvg = 0;
@@ -559,7 +565,7 @@ void Hex_controller::update()
                 break;
             case Fill_by_rotation_fTop:
             case Fill_by_rotation_fBottom:
-                if (step_count <= TOTAL_LEDS)
+                if (step_count <= Hex_controller::TotalLeds)
                 {
                     leds[step_count] = clr_arr[animation_step];
                 }
@@ -573,7 +579,7 @@ void Hex_controller::update()
         }
         lastDrew = millis();
 
-        fadeToBlackBy(leds, TOTAL_LEDS, fade);
+        fadeToBlackBy(leds, Hex_controller::TotalLeds, fade);
         FastLED.show(maxBrightness);
     }
 }

@@ -4,11 +4,11 @@
 /* Number of LEDs in each box/leaf */
 #define LEDS_IN_BOX 30
 /*The number of boxes */
-#define NUM_BOXES 5
+//#define NUM_BOXES 5
 /*The pin the LED is connected to */
 #define LED_PIN 22
 /*Don't change unless you know what you're doing */
-#define TOTAL_LEDS LEDS_IN_BOX *NUM_BOXES
+//#define TOTAL_LEDS LEDS_IN_BOX *NUM_BOXES
 
 #define LED_IN_SIDE LEDS_IN_BOX / 6
 

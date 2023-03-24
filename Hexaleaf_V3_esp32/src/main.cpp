@@ -15,7 +15,7 @@
 #include "HEX_controller.h"
 #include "common_data.h"
 
-char *topicArray[] = {
+char const *topicArray[] = {
     "mode",
     "speed",
     "fade",
@@ -24,6 +24,7 @@ char *topicArray[] = {
     "primaryColor",
     "secondaryColor",
     "layout",
+    "power",
 };
 int num_topics = 8;
 Hex_controller *hexController;
@@ -31,6 +32,8 @@ int localChangePeriod = 20000;
 long lastChangeMs = 0;
 bool power = true;
 bool localRun = false;
+bool firstSetup = true;
+
 WiFiManager wm;
 WiFiClientSecure net = WiFiClientSecure();
 PubSubClient client(net);
@@ -40,7 +43,19 @@ void publishMessage(const char *topic, String payload)
     if (client.publish(topic, payload.c_str(), true))
         Serial.println("Message publised [" + String(topic) + "]: " + payload);
 }
+void hexControllerSetup(int numBoxes, int **layout, bool isFirstTime)
+{
 
+    hexController = new Hex_controller(numBoxes, layout);
+    hexController->set_serial(Serial);
+    Serial.println("Set serial Done");
+
+    hexController->init(isFirstTime);
+    Serial.println("hex init Done");
+    hexController->set_rainbow(1);
+    hexController->change_mode(AudioFreqPool);
+    hexController->set_brightness(255);
+}
 void messageHandler(char *topic, byte *payload, unsigned int length)
 {
     Serial.print("incoming topic: ");
@@ -70,15 +85,24 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
     {
         if (strstr(topic, "mode"))
         {
-            Mode m = (Mode)atoi((char *)payload);
-            if (m >= Mode::Mode_num - 1)
+            inputMode m = (inputMode)atoi((char *)payload);
+            if (m >= inputMode::Mode_num_ - 1)
             {
                 Serial.printf("ERROR:not valid mode %d\n", m);
             }
             else
             {
-                hexController->change_mode(m);
-                Serial.printf("Mode is now %d\n", m);
+                if (m >= inputMode::TopBottom_)
+                {
+                    uint8_t anim = m - inputMode::TopBottom_ + 1;
+                    Serial.printf("animation is now %d\n", anim);
+                    hexController->set_pre_anim(anim);
+                }
+                else
+                {
+                    hexController->change_mode((Mode)m);
+                    Serial.printf("Mode is now %d\n", m);
+                }
             }
         }
         else if (strstr(topic, "speed"))
@@ -87,12 +111,12 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
             hexController->set_speed(s);
             Serial.printf("speed is now %d\n", s);
         }
-        else if (strstr(topic, "anim"))
-        {
-            int s = atoi((char *)payload);
-            hexController->set_pre_anim(s);
-            Serial.printf("animation is now %d\n", s);
-        }
+        // else if (strstr(topic, "anim"))
+        // {
+        //     int s = atoi((char *)payload);
+        //     hexController->set_pre_anim(s);
+        //     Serial.printf("animation is now %d\n", s);
+        // }
         else if (strstr(topic, "fade"))
         {
             int s = atoi((char *)payload);
@@ -104,6 +128,17 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
             int s = atoi((char *)payload);
             hexController->set_brightness(s);
             Serial.printf("brightness is now %d\n", s);
+        }
+        else if (strstr(topic, "layout"))
+        {
+            std::string delimiterBox("::");
+            std::string str((char *)payload);
+            int pos = str.find_first_of(delimiterBox);
+
+            int boxNum = atoi(str.substr(0, pos).c_str());
+            str.erase(0, pos + delimiterBox.length());
+            int **layout = parseLayout(str, boxNum);
+            hexControllerSetup(boxNum, layout,false);
         }
     }
 }
@@ -162,33 +197,29 @@ void WifiSetup()
         Serial.println("Mqtt timeout!");
         return;
     }
-   
+
     client.subscribe(topicArray[0], 1);
     // Subscribe to a topic
     for (int i = 0; i < num_topics; i++)
     {
         client.subscribe(topicArray[i], 1);
-       
     }
-   
-    char *tpc = "test";
+
+    char tpc[] = "test";
     publishMessage(tpc, "setup done");
     Serial.println("MQTT_Connected!");
 }
-
 void setup()
 {
     pinMode(0, INPUT_PULLUP);
     Serial.begin(115200);
     delay(2000); // power-up safety delay
     Serial.println("> Setup....");
-    hexController = new Hex_controller();
-    hexController->set_serial(Serial);
-    hexController->init();
-    WifiSetup();
-    hexController->set_rainbow(1);
-    hexController->change_mode(AudioFreqPool);
-    hexController->set_brightness(255);
+    int **setupLayout = new int *[1];
+    setupLayout[0] = new int[2];
+    setupLayout[0][0] = 0;
+    setupLayout[0][1] = 0;
+    hexControllerSetup(1, setupLayout,true);
     Serial.println("Setup DONE");
 
     delay(2000);
@@ -196,6 +227,28 @@ void setup()
 
 void loop()
 {
+
+    while (true)
+    {
+        std::string delimiterBox("::");
+        std::string str("4::0,0|3,0|0,5|0,4|"); // 3,4|5,6|
+        int pos = str.find_first_of(delimiterBox);
+
+        int boxNum = atoi(str.substr(0, pos).c_str());
+        str.erase(0, pos + delimiterBox.length());
+        // parseLayout(str, boxNum);
+        int **res = parseLayout(str, boxNum);
+        for (size_t i = 0; i < boxNum; i++)
+        {
+            for (size_t j = 0; j < 2; j++)
+            {
+                Serial.printf("box:%d cord:%d - %d\n", i, j, res[i][j]);
+            }
+        }
+        hexControllerSetup(boxNum, res,false);
+        delay(3000);
+        free(res);
+    }
 
     if (!localRun)
     {
