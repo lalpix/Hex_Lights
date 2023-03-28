@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Color primaryColor = Colors.green;
   Color secondaryColor = Colors.blue;
   double speedSliderValue = 60;
-  double fadeSliderValue = 40;
+  double brightnessSliderValue = 100;
   late Box box;
   MQTTClientWrapper mqttClient = MQTTClientWrapper();
 
@@ -149,14 +149,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
   brigtnessWidget() => ColapsableListTile(
-        name: 'Tmavost',
+        name: 'Jas',
         body: Slider(
           max: 100,
-          value: fadeSliderValue,
+          value: brightnessSliderValue,
           onChanged: (value) => setState(
             () {
-              fadeSliderValue = value;
-              mqttClient.publishMessage(Topics.fade.name, value.toString());
+              brightnessSliderValue = value;
+              mqttClient.publishMessage(Topics.brightness.name, value.toString());
             },
           ),
         ),

@@ -1,5 +1,7 @@
 #include <stdlib.h>
 
+#ifndef HELPERS
+#define HELPERS
 enum inputMode
 {
     Stationar_, // all hex same color
@@ -14,7 +16,7 @@ enum inputMode
     LeftRight_,
     MeetInMidle_,
     DirectionCircle_,
-    Mode_num_,
+    InputMode_num_,
 };
 String inputModeName(inputMode m)
 {
@@ -79,3 +81,31 @@ int **parseLayout(std::string str, int numBoxes)
 
     return arr;
 }
+CRGB *parseColorFromText(std::string str)
+{
+    CRGB *clr = (CRGB *)calloc(1, sizeof(CRGB));
+    std::string delimiter = ",";
+    for (size_t i = 0; i < 3; i++)
+    {
+        int pos = str.find(delimiter);
+        const char *tmp0 = str.substr(0, pos).c_str();
+        switch (i)
+        {
+        case 0:
+            clr->r = atoi(tmp0);
+        case 1:
+            clr->g = atoi(tmp0);
+            break;
+        case 2:
+            clr->b = atoi(tmp0);
+            break;
+        }
+        str.erase(0, pos + delimiter.length());
+    }
+    return clr;
+}
+void printCRGB(CRGB clr)
+{
+    Serial.printf("R: %x G: %x B: %x\n", clr.r, clr.g, clr.b);
+}
+#endif

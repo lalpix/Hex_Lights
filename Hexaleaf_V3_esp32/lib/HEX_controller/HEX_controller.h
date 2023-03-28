@@ -79,6 +79,7 @@ public:
         for (uint8_t i = 0; i < numBoxes; i++)
         {
             nodes[i] = new Hexnode(i);
+            
         }
         Serial.println("object ready");
     }
@@ -117,6 +118,7 @@ public:
     void fill_leds_on_Hor_lvl(int16_t lvl, CRGB clr);
     void fill_same_dir_sides(CRGB clr, int direc);
     void fill_all_hex(CRGB clr);
+    void fill_one_hex(uint8_t hex, CRGB clr);
     void fill_one_led_all_hex(CRGB clr, uint8_t n);
     void fill_one_side_one_hex(CRGB clr, uint8_t hex, uint8_t dir);
     // user input
@@ -130,7 +132,6 @@ public:
     void pause_play(bool f);
     void change_mode(Mode m);
     void change_fill_mode(FillMode new_fill_mode);
-    void printCRGB(CRGB clr);
     void update();
 };
 

@@ -160,12 +160,12 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
           onPressed: () async => {
             await _saveHexGridData(),
             layoutMsg.clear(),
-            layoutMsg.write('${hexList.length}::'),
+            layoutMsg.write('${hexList.length - 1}::'),
             for (var hex in hexList)
               {
-                if (hex.seqId != 0)//dont include base
+                if (hex.seqId != 0) //dont include base
                   {
-                    //-2 is offset for the base that is acounted here but not on device                   
+                    //-2 is offset for the base that is acounted here but not on device
                     layoutMsg.write('${hex.coord.q},${hex.coord.r - 2}|'),
                   }
               },

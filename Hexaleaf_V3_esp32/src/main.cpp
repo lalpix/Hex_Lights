@@ -45,15 +45,15 @@ void publishMessage(const char *topic, String payload)
 }
 void hexControllerSetup(int numBoxes, int **layout, bool isFirstTime)
 {
-
     hexController = new Hex_controller(numBoxes, layout);
     hexController->set_serial(Serial);
     Serial.println("Set serial Done");
-
+    Serial.printf("present %d nodes with positions:",numBoxes);
+    
     hexController->init(isFirstTime);
     Serial.println("hex init Done");
     hexController->set_rainbow(1);
-    hexController->change_mode(AudioFreqPool);
+    hexController->change_mode(RotationOuter);
     hexController->set_brightness(255);
 }
 void messageHandler(char *topic, byte *payload, unsigned int length)
@@ -85,13 +85,21 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
     {
         if (strstr(topic, "mode"))
         {
-            inputMode m = (inputMode)atoi((char *)payload);
-            if (m >= inputMode::Mode_num_ - 1)
+            inputMode m = Stationar_;
+
+            for (inputMode i = Stationar_; i !=InputMode_num_ ; i=(inputMode)(i+1))
             {
-                Serial.printf("ERROR:not valid mode %d\n", m);
+                if (strstr((char *)payload,inputModeName(i).c_str())){
+                    m = i;
+                    Serial.printf("found mode: %s", inputModeName(i).c_str());
+                }
             }
-            else
-            {
+            // if (m >= inputMode::InputMode_num_ - 1)
+            // {
+            //     Serial.printf("ERROR:not valid mode %d\n", m);
+            // }
+            // else
+            // {
                 if (m >= inputMode::TopBottom_)
                 {
                     uint8_t anim = m - inputMode::TopBottom_ + 1;
@@ -103,7 +111,7 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
                     hexController->change_mode((Mode)m);
                     Serial.printf("Mode is now %d\n", m);
                 }
-            }
+            // }
         }
         else if (strstr(topic, "speed"))
         {
@@ -138,7 +146,22 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
             int boxNum = atoi(str.substr(0, pos).c_str());
             str.erase(0, pos + delimiterBox.length());
             int **layout = parseLayout(str, boxNum);
-            hexControllerSetup(boxNum, layout,false);
+            hexControllerSetup(boxNum, layout, false);
+        }
+        else if (strstr(topic, "singleHexColor"))
+        {
+            std::string delimiterBox("::");
+            std::string str((char *)payload);
+
+            int pos = str.find_first_of(delimiterBox);
+            int boxId = atoi(str.substr(0, pos).c_str())-1;
+            str.erase(0, pos + delimiterBox.length());
+            CRGB *clr = parseColorFromText(str);
+            Serial.printf("should print box %d with color:\n", boxId);
+            printCRGB(*clr);
+            hexController->fill_one_hex(boxId, *clr);
+            hexController->change_mode(NotUpdating);
+            free(clr);
         }
     }
 }
@@ -198,8 +221,6 @@ void WifiSetup()
         return;
     }
 
-    client.subscribe(topicArray[0], 1);
-    // Subscribe to a topic
     for (int i = 0; i < num_topics; i++)
     {
         client.subscribe(topicArray[i], 1);
@@ -219,36 +240,36 @@ void setup()
     setupLayout[0] = new int[2];
     setupLayout[0][0] = 0;
     setupLayout[0][1] = 0;
-    hexControllerSetup(1, setupLayout,true);
+    hexControllerSetup(1, setupLayout, true);
+    WifiSetup();
     Serial.println("Setup DONE");
 
     delay(2000);
 }
-
 void loop()
 {
 
-    while (true)
-    {
-        std::string delimiterBox("::");
-        std::string str("4::0,0|3,0|0,5|0,4|"); // 3,4|5,6|
-        int pos = str.find_first_of(delimiterBox);
+    // while (true)
+    // {
+    //     std::string delimiterBox("::");
+    //     std::string str("4::0,0|3,0|0,5|0,4|"); // 3,4|5,6|
+    //     int pos = str.find_first_of(delimiterBox);
 
-        int boxNum = atoi(str.substr(0, pos).c_str());
-        str.erase(0, pos + delimiterBox.length());
-        // parseLayout(str, boxNum);
-        int **res = parseLayout(str, boxNum);
-        for (size_t i = 0; i < boxNum; i++)
-        {
-            for (size_t j = 0; j < 2; j++)
-            {
-                Serial.printf("box:%d cord:%d - %d\n", i, j, res[i][j]);
-            }
-        }
-        hexControllerSetup(boxNum, res,false);
-        delay(3000);
-        free(res);
-    }
+    //     int boxNum = atoi(str.substr(0, pos).c_str());
+    //     str.erase(0, pos + delimiterBox.length());
+    //     // parseLayout(str, boxNum);
+    //     int **res = parseLayout(str, boxNum);
+    //     for (size_t i = 0; i < boxNum; i++)
+    //     {
+    //         for (size_t j = 0; j < 2; j++)
+    //         {
+    //             Serial.printf("box:%d cord:%d - %d\n", i, j, res[i][j]);
+    //         }
+    //     }
+    //     hexControllerSetup(boxNum, res,false);
+    //     delay(3000);
+    //     free(res);
+    // }
 
     if (!localRun)
     {
@@ -256,13 +277,13 @@ void loop()
     }
     else
     {
-        // if (millis() > lastChangeMs + localChangePeriod){
-        //     hexController->next_mode();
-        //     lastChangeMs = millis();
-        // }
+        if (millis() > lastChangeMs + localChangePeriod){
+            hexController->next_mode();
+            lastChangeMs = millis();
+        }
     }
     if (power)
-    {
+    {   
         hexController->update();
     }
     else

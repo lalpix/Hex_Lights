@@ -53,8 +53,9 @@ enum FillMode
 
 enum Mode
 {
+
     Stationar, // all hex same color
-    //Rotation,  // all hex rotating
+    // Rotation,  // all hex rotating
     RotationOuter,
     StationarOuter,
     RandColorRandHex,
@@ -63,6 +64,7 @@ enum Mode
     AudioBeatReact,
     AudioFreqPool,
     PresetAnim,
+    NotUpdating,
     Mode_num
 };
 

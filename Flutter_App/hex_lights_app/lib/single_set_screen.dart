@@ -120,7 +120,7 @@ class _SingleSetScreenState extends State<SingleSetScreen> {
                 });
 
                 clientWrapper.publishMessage(Topics.singleHexColor.name,
-                    '$key::${c.red.toInt()},${c.blue.toInt()},${c.green.toInt()}');
+                    '$key::${c.red.toInt()},${c.green.toInt()},${c.blue.toInt()}');
               },
             )
           : const SizedBox.shrink(),

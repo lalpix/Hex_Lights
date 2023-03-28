@@ -11,9 +11,11 @@ void Hex_controller::calculate_outer_leds()
         {-1, -1},
         {0, -2},
     };
+    Serial.println("calculating outer leds");
     // for all boxes
     for (int i = 0; i < Hex_controller::NumBoxes; i++)
     {
+        Serial.printf("in box num %d \n",i);
         int x = position[i][0];
         int y = position[i][1];
         // check all other boxes
@@ -104,7 +106,7 @@ void Hex_controller::calculate_horz_vert_vals()
     VertMax = 3 * LED_IN_SIDE + VertMax * (LED_IN_SIDE * 2) + 1;
     HorzCount = HorzMax - HorzMin;
     VertCount = VertMax - VertMin;
-    //mySerial.printf(" min horz-%d verz-%d max horz-%d verz-%d CNT h: %d v:%d\n", HorzMin, VertMin, HorzMax, VertMax, HorzCount, VertCount);
+    // mySerial.printf(" min horz-%d verz-%d max horz-%d verz-%d CNT h: %d v:%d\n", HorzMin, VertMin, HorzMax, VertMax, HorzCount, VertCount);
 }
 // basic fill functions
 void Hex_controller::fill_leds_on_Vert_lvl(int16_t lvl, CRGB clr)
@@ -134,6 +136,11 @@ void Hex_controller::fill_same_dir_sides(CRGB clr, int direc)
         nodes[i]->fill_side(clr, leds, direc);
     }
 }
+void Hex_controller::fill_one_hex(uint8_t hex, CRGB clr)
+{
+    nodes[hex]->fill_hex(clr, leds);
+    mode = NotUpdating;
+}
 void Hex_controller::fill_all_hex(CRGB clr)
 {
     // mySerial.print("filling all hex with clr: ");
@@ -159,7 +166,7 @@ void Hex_controller::fill_one_side_one_hex(CRGB clr, uint8_t hex, uint8_t dir)
 // user input
 void Hex_controller::set_pre_anim(uint8_t n)
 {
-    //Serial.printf("setting anim%d\n",n);
+    // Serial.printf("setting anim%d\n",n);
     mode = PresetAnim;
     fill_done = true;
     preset = n;
@@ -168,12 +175,11 @@ void Hex_controller::set_pre_anim(uint8_t n)
 }
 void Hex_controller::set_speed(uint16_t spd)
 {
-    drawEveryNthMs = spd;
+    drawEveryNthMs = 100-spd;
 }
 void Hex_controller::set_color(CRGB clr, int idx)
 {
     clr_arr[idx] = clr;
-    printCRGB(clr_arr[idx]);
 }
 void Hex_controller::set_brightness(uint8_t b)
 {
@@ -200,21 +206,18 @@ void Hex_controller::set_rainbow(int r)
     // mySerial.print("rainbow is now: ");
     // mySerial.println(rainbow);
 }
-void Hex_controller::change_layout(int lenght,int coords[][2]){
+void Hex_controller::change_layout(int lenght, int coords[][2])
+{
     for (size_t i = 0; i < lenght; i++)
     {
         /* code */
     }
-    
 }
 // internal functions
-void Hex_controller::printCRGB(CRGB clr)
-{
-    mySerial.printf("R: %x G: %x B: %x\n", clr.r, clr.g, clr.b);
-}
+
 void Hex_controller::change_mode(Mode m)
 {
-    //Serial.printf("setting mode %d\n",m);
+    // Serial.printf("setting mode %d\n",m);
     fill_mode = Not_fill_mode;
     fill_done = true;
     mode = m;
@@ -300,7 +303,7 @@ void Hex_controller::next_mode()
             preset += 1;
             set_pre_anim(preset);
         }
-        }
+    }
 }
 void Hex_controller::update()
 {
@@ -359,7 +362,8 @@ void Hex_controller::update()
         case RandColorRandHex:
         {
             step_count++;
-            if (step_count>5){//update every 10 ticks
+            if (step_count > 5)
+            { // update every 10 ticks
                 step_count = 0;
                 uint8_t idx = rand() % Hex_controller::NumBoxes;
                 nodes[idx]->fill_hex(CHSV(random8(), random8(), 255), leds);
@@ -388,7 +392,7 @@ void Hex_controller::update()
             {
 
                 // CRGB clr=clr.setHue(((step_count+i)*step)%255);
-                fill_leds_on_Vert_lvl(i+VertMin, tmp[i]);
+                fill_leds_on_Vert_lvl(i + VertMin, tmp[i]);
             }
             step_count = (step_count > 255) ? 0 : step_count + 1;
             break;
@@ -504,6 +508,8 @@ void Hex_controller::update()
             }
             break;
         }
+        case NotUpdating:
+            break;
         default:
             // here test code
             mySerial.println("ERROR: False mode");
@@ -544,7 +550,7 @@ void Hex_controller::update()
             case Fill_by_lines_meet_in_midle_LR:
                 if (step_count >= VertMin && (VertCount / 2) >= step_count)
                 {
-                    fill_leds_on_Vert_lvl(step_count+VertMin, clr_arr[animation_step]);
+                    fill_leds_on_Vert_lvl(step_count + VertMin, clr_arr[animation_step]);
                     fill_leds_on_Vert_lvl(VertMax - step_count, clr_arr[animation_step]);
                 }
                 else
@@ -555,7 +561,7 @@ void Hex_controller::update()
             case Fill_by_lines_meet_in_midle_TB:
                 if (step_count >= HorzMin && (HorzCount / 2) >= step_count)
                 {
-                    fill_leds_on_Hor_lvl(step_count+HorzMin, clr_arr[animation_step]);
+                    fill_leds_on_Hor_lvl(step_count + HorzMin, clr_arr[animation_step]);
                     fill_leds_on_Hor_lvl(HorzMax - step_count, clr_arr[animation_step]);
                 }
                 else
@@ -578,8 +584,10 @@ void Hex_controller::update()
             step_count += step;
         }
         lastDrew = millis();
-
-        fadeToBlackBy(leds, Hex_controller::TotalLeds, fade);
+        if (mode != NotUpdating)
+        {
+            fadeToBlackBy(leds, Hex_controller::TotalLeds, fade);
+        }
         FastLED.show(maxBrightness);
     }
 }

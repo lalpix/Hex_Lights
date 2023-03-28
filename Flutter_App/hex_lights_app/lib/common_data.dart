@@ -4,6 +4,7 @@ enum Topics {
   secondaryColor,
   layout,
   fade,
+  brightness,
   speed,
   mode,
   power,

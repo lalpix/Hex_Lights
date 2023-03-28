@@ -8,6 +8,8 @@ import 'home_screen.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
+///---------------------------
+/////TODO add ower off button, on/off fade
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -38,7 +40,7 @@ class MyApp extends StatelessWidget {
       initialRoute: route,
       routes: {
         '/home': (context) => const HomeScreen(),
-        '/setLayout': (context) => LayoutSetScreen(),
+        '/setLayout': (context) => const LayoutSetScreen(),
         '/setSignleHex': (context) => const SingleSetScreen(),
       },
     );
