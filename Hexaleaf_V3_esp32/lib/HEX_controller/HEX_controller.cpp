@@ -15,7 +15,6 @@ void Hex_controller::calculate_outer_leds()
     // for all boxes
     for (int i = 0; i < Hex_controller::NumBoxes; i++)
     {
-        Serial.printf("in box num %d \n",i);
         int x = position[i][0];
         int y = position[i][1];
         // check all other boxes
@@ -175,7 +174,7 @@ void Hex_controller::set_pre_anim(uint8_t n)
 }
 void Hex_controller::set_speed(uint16_t spd)
 {
-    drawEveryNthMs = 100-spd;
+    drawEveryNthMs = 100 - spd;
 }
 void Hex_controller::set_color(CRGB clr, int idx)
 {
@@ -203,16 +202,8 @@ void Hex_controller::set_rainbow(int r)
     {
         rainbow = 0;
     }
-    // mySerial.print("rainbow is now: ");
-    // mySerial.println(rainbow);
 }
-void Hex_controller::change_layout(int lenght, int coords[][2])
-{
-    for (size_t i = 0; i < lenght; i++)
-    {
-        /* code */
-    }
-}
+
 // internal functions
 
 void Hex_controller::change_mode(Mode m)
@@ -508,6 +499,9 @@ void Hex_controller::update()
             }
             break;
         }
+        case TwoColorFading:
+        //TODO HERE - get random collor, Add it to hex module. fade step to that color, if reached, create another random color and fade to that
+            break;
         case NotUpdating:
             break;
         default:

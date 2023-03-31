@@ -11,7 +11,9 @@ enum inputMode
     RainbowSwipeVert_,
     RainbowSwipeHorz_,
     AudioBeatReact_, //
-    AudioFreqPool_,  //
+    AudioFreqPool_,  
+    TwoColorFading_,
+    //--after that it is animation
     TopBottom_,
     LeftRight_,
     MeetInMidle_,
@@ -34,6 +36,8 @@ String inputModeName(inputMode m)
         return "RainbowSwipeVert";
     case RainbowSwipeHorz_:
         return "RainbowSwipeHorz";
+    case TwoColorFading_:
+        return "TwoColorFading";
     case AudioBeatReact_:
         return "AudioBeatReact";
     case AudioFreqPool_:

@@ -10,15 +10,14 @@ class Hexnode
   private:
     uint8_t horiz_lvl;
     uint8_t vert_lvl;
-   
     uint16_t fadeTimeMs;
-    CRGB color;
     FadeVector fadeVector;
     uint8_t spin_index=0;
   public:
     uint16_t ledStart;
     uint16_t ledEnd;
     uint8_t connectionPoints[6]={0};
+    CRGB color;
     CRGB colorTo=CRGB::Black;
     Hexnode(uint8_t index)
     {   
@@ -33,41 +32,12 @@ class Hexnode
     CRGB *fill_hex(CRGB clr, CRGB *leds);
     CRGB *fill_one_led(CRGB clr, CRGB *leds, uint8_t n);
     CRGB *fill_n_leds(CRGB clr, CRGB *leds, uint8_t n);
+    CRGB fadeToColor(CRGB *leds,float speed);
+    void setColor(CRGB clr) { color = clr; };
+    void setToColor(CRGB clr) { colorTo = clr; };
 
-    /*
-    CRGB* ledscompute_fade_vector()
-    {
-        fadeVector.r = (float)(colorTo.r - color.r) / (float)fadeTimeMs;
-        fadeVector.g = (float)(colorTo.g - color.g) / (float)fadeTimeMs;
-        fadeVector.b = (float)(colorTo.b - color.b) / (float)fadeTimeMs;
-    }
-    CRGB* ledscolor_update()
-    {
-        unsigned long delta_ms = millis() - lastDrawTimer;
-        lastDrawTimer = millis();
-        int16_t r = color.r + (fadeVector.r * delta_ms);
-        int16_t g = color.g + (fadeVector.g * delta_ms);
-        int16_t b = color.b + (fadeVector.b * delta_ms);
-        (r >= 255) ? color.r = 255 : (r <= 0) ? color.r = 0 : color.r = r;
-        (g >= 255) ? color.g = 255 : (g <= 0) ? color.g = 0 : color.g = g;
-        (b >= 255) ? color.b = 255 : (b <= 0) ? color.b = 0 : color.b = b;
-    }
-    int draw(){
-      if (animating)
-        {
-            color_update();
-            if (millis() - startDrawTimer >= fadeTimeMs)
-            {
-                animating = false;
-                peakTimer = millis();
-            }
-        }
-
-      for (uint16_t ledPos = ledStart; ledPos <= ledEnd; ledPos++)
-      {
-          leds[ledPos] = color;
-      }
-      return 0;
-    }*/ 
+    
+    void ledscompute_fade_vector();
+    void ledscolor_update();
 };
 #endif
