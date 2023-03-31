@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:hex_lights_app/utils/button_mode_child.dart';
@@ -95,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
             chosen: false,
             text: 'Primární barva',
             color: primaryColor,
+            textColor: textColor(primaryColor),
             onTap: () async {
               Color color = await myColorPicker(context, primaryColor, 'Primární barva');
               setState(() => primaryColor = color);
@@ -108,6 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
             chosen: false,
             text: 'Sekundární barva',
             color: secondaryColor,
+            textColor: textColor(secondaryColor),
             onTap: () async {
               Color color = await myColorPicker(context, secondaryColor, 'Sekundární barva');
               setState(() {
@@ -123,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(10),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 8, 16, 8),
           child: ElevatedButton(
             onPressed: () {
               Navigator.pushNamed(context, '/setSignleHex',
@@ -336,14 +339,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Icon(Icons.settings),
                 ),
                 itemBuilder: (context) {
-                  return const [
-                    PopupMenuItem<int>(
+                  return [
+                    const PopupMenuItem<int>(
                       value: 0,
                       child: Text("Upravit rozložení"),
                     ),
-                    PopupMenuItem<int>(
+                    const PopupMenuItem<int>(
                       value: 1,
                       child: Text("Opakovat pokus o připojení"),
+                    ),
+                    PopupMenuItem<int>(
+                      value: 1,
+                      child: Text("Server status ${mqttClient.subscriptionState.name}"),
                     ),
                   ];
                 },

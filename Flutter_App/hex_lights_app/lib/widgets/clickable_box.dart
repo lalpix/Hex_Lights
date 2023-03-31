@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 
 Widget clickableBox({
   String? text,
-  Color color= Colors.transparent,
+  Color color = Colors.transparent,
   required Function() onTap,
   Widget? widget,
+  Color? textColor,
   required bool chosen,
-}){
+}) {
   return Expanded(
     child: InkWell(
       onTap: onTap,
@@ -17,7 +18,13 @@ Widget clickableBox({
           color: color,
         ),
         height: 50,
-        child: text != null ? Center(child: Text(text)) : widget,
+        child: text != null
+            ? Center(
+                child: Text(
+                text,
+                style: textColor == null ? null : TextStyle(color: textColor),
+              ))
+            : widget,
       ),
     ),
   );

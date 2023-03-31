@@ -1,7 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
-Future<Color> myColorPicker(BuildContext context, Color originalColor,String text) async {
+Future<Color> myColorPicker(BuildContext context, Color originalColor, String text) async {
   Color? c = await showDialog<Color?>(
       context: context,
       builder: (BuildContext context) {
@@ -29,4 +31,8 @@ Future<Color> myColorPicker(BuildContext context, Color originalColor,String tex
         );
       });
   return c ?? originalColor;
+}
+
+Color textColor(Color c) {
+  return max(c.blue, max(c.green, c.red)) >= 125 ? Colors.black : Colors.white;
 }
