@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hex_lights_app/utils/button_mode_child.dart';
 import 'package:hex_lights_app/utils/color_picker.dart';
+// import 'package:hex_lights_app/utils/hexagon_model.dart';
 import 'package:hex_lights_app/utils/routing_arguments.dart';
 import 'package:hex_lights_app/widgets/clickable_box.dart';
 import 'package:hex_lights_app/widgets/colapsable_list_tile.dart';
@@ -10,7 +13,8 @@ import 'mymqtt.dart';
 
 class HomeScreen extends StatefulWidget {
   //pass main color from homescreen
-  const HomeScreen({super.key});
+  const HomeScreen(this.freshStart, {super.key});
+  final bool freshStart;
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -20,6 +24,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     mqttClient.prepareMqttClient();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.freshStart) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Vítejte,\nNastavte si svoje svoje rozožení."),
+        ));
+      }
+    });
   }
 
   Mode selectedMode = Mode.Stationar;
@@ -27,9 +38,57 @@ class _HomeScreenState extends State<HomeScreen> {
   Color secondaryColor = Colors.blue;
   double speedSliderValue = 60;
   double brightnessSliderValue = 100;
+  double fadeSliderValue = 40;
   late Box box;
   MQTTClientWrapper mqttClient = MQTTClientWrapper();
-
+  bool power = true;
+  bool rainbow = true;
+  switchRow() => ColapsableListTile(
+          body: Row(mainAxisSize: MainAxisSize.max, children: [
+        Expanded(
+          flex: 1,
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  mqttClient.publishMessage(Topics.power.name, power ? 'off' : 'on');
+                  power = !power;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(30),
+                backgroundColor: power ? Colors.red : Colors.green, // <-- Button color
+              ),
+              child: const Icon(Icons.power_settings_new, color: Colors.white),
+            ),
+          ),
+        ),
+        const SizedBox(
+          width: 10,
+        ),
+        Expanded(
+          flex: 1,
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  const Text('Měnící barva'),
+                  Switch(
+                      value: rainbow,
+                      onChanged: (val) {
+                        setState(() {
+                          rainbow = val;
+                        });
+                        mqttClient.publishMessage(Topics.fade.name, rainbow ? '0' : '1');
+                      })
+                ],
+              ),
+            ],
+          ),
+        ),
+      ]));
   colorWidget() => ColapsableListTile(
         body: Row(children: [
           clickableBox(
@@ -59,7 +118,48 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ]),
       );
-
+  setIndividualy() => Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/setSignleHex',
+                  arguments:
+                      SingleSetArguments(primaryColor: primaryColor, clientWrapper: mqttClient));
+            },
+            child: const Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Text('Nastavit jednotlivě'),
+            ),
+          ),
+        ),
+      );
+  menuItems() => ColapsableListTile(
+        name: 'Efekty',
+        body: Row(children: [
+          clickableBox(
+              chosen: selectedMode == Mode.RotationOuter,
+              text: 'Bežící okraj',
+              onTap: () {
+                setState(() => selectedMode = Mode.RotationOuter);
+                mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
+              }),
+          const SizedBox(
+            width: 10,
+          ),
+          clickableBox(
+            chosen: selectedMode == Mode.RandColorRandHex,
+            text: 'Náhodné',
+            onTap: () => setState(() {
+              selectedMode = Mode.RandColorRandHex;
+              mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
+            }),
+          )
+        ]),
+      );
   menuItemsBezEfektu() => ColapsableListTile(
         name: 'Bez efektu',
         body: Row(children: [
@@ -136,31 +236,53 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ));
   animSpeedWidget() => ColapsableListTile(
-        name: 'Rychlost animace',
-        body: Slider(
-          max: 100,
-          value: speedSliderValue,
-          onChanged: (value) => setState(
-            () {
-              speedSliderValue = value;
-              mqttClient.publishMessage(Topics.speed.name, value.toString());
-            },
+          body: Row(children: [
+        const Text('Speed'),
+        Expanded(
+          child: Slider(
+            max: 100,
+            value: speedSliderValue,
+            onChanged: (value) => setState(
+              () {
+                speedSliderValue = value;
+                mqttClient.publishMessage(Topics.speed.name, value.toString());
+              },
+            ),
           ),
-        ),
-      );
+        )
+      ]));
+  fadeWidget() => ColapsableListTile(
+          body: Row(children: [
+        const Text('Fade'),
+        Expanded(
+          child: Slider(
+            max: 100,
+            value: fadeSliderValue,
+            onChanged: (value) => setState(
+              () {
+                fadeSliderValue = value;
+                mqttClient.publishMessage(Topics.fade.name, value.toString());
+              },
+            ),
+          ),
+        )
+      ]));
   brigtnessWidget() => ColapsableListTile(
-        name: 'Jas',
-        body: Slider(
-          max: 100,
-          value: brightnessSliderValue,
-          onChanged: (value) => setState(
-            () {
-              brightnessSliderValue = value;
-              mqttClient.publishMessage(Topics.brightness.name, value.toString());
-            },
+          body: Row(children: [
+        const Text('Jas'),
+        Expanded(
+          child: Slider(
+            max: 100,
+            value: brightnessSliderValue,
+            onChanged: (value) => setState(
+              () {
+                brightnessSliderValue = value;
+                mqttClient.publishMessage(Topics.brightness.name, value.toString());
+              },
+            ),
           ),
-        ),
-      );
+        )
+      ]));
   soundAnimWidget() => ColapsableListTile(
         name: 'Hudebni animace',
         body: Row(children: [
@@ -192,28 +314,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     List<Widget> mainWidgetList = [
+      switchRow(),
       colorWidget(),
-      menuItemsBezEfektu(),
+      setIndividualy(),
+      soundAnimWidget(),
+      menuItems(),
       menuItemsAnimFill(),
       animSpeedWidget(),
       brigtnessWidget(),
-      soundAnimWidget(),
-      Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.pushNamed(context, '/setSignleHex',
-                arguments:
-                    SingleSetArguments(primaryColor: primaryColor, clientWrapper: mqttClient));
-          },
-          child: const Padding(
-            padding: EdgeInsets.all(20.0),
-            child: Text('Nastavit jednotlivě'),
-          ),
-        ),
-      )
+      fadeWidget(),
+      menuItemsBezEfektu(),
     ];
 
     return Scaffold(
@@ -256,7 +366,9 @@ class _HomeScreenState extends State<HomeScreen> {
           child: ListView.separated(
             itemBuilder: (context, index) => mainWidgetList[index],
             itemCount: mainWidgetList.length,
-            separatorBuilder: (context, index) => const Divider(),
+            separatorBuilder: (context, index) => const Divider(
+              height: 8,
+            ),
           ),
         ));
   }

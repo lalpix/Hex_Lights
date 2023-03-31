@@ -26,14 +26,17 @@ char const *topicArray[] = {
     "layout",
     "power",
 };
-int num_topics = 8;
+int num_topics = 9;
 Hex_controller *hexController;
 int localChangePeriod = 20000;
 long lastChangeMs = 0;
 bool power = true;
 bool localRun = false;
 bool firstSetup = true;
-
+// TODO  Storing last settings, layout at least
+// Upgrade audio to adjust levels over time
+// SET colors prim and sec
+// min/max speed for each mode,
 WiFiManager wm;
 WiFiClientSecure net = WiFiClientSecure();
 PubSubClient client(net);
@@ -48,8 +51,8 @@ void hexControllerSetup(int numBoxes, int **layout, bool isFirstTime)
     hexController = new Hex_controller(numBoxes, layout);
     hexController->set_serial(Serial);
     Serial.println("Set serial Done");
-    Serial.printf("present %d nodes with positions:",numBoxes);
-    
+    Serial.printf("present %d nodes with positions:", numBoxes);
+
     hexController->init(isFirstTime);
     Serial.println("hex init Done");
     hexController->set_rainbow(1);
@@ -68,103 +71,104 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
     msg[length] = '\0';
     Serial.print(" msg: ");
     Serial.println(msg);
+    power = true;
+
     if (strstr(topic, "power"))
     {
         if (strstr((char *)payload, "off"))
         {
-            Serial.print("power off");
             power = false;
-        }
-        else if (strstr((char *)payload, "on"))
-        {
-            Serial.print("power on");
+            Serial.println("powering off");
+            hexController->fill_all_hex(CRGB::Black);
+        }else{
             power = true;
+            Serial.println("powering on");
         }
     }
-    if (power)
+
+    if (strstr(topic, "mode"))
     {
-        if (strstr(topic, "mode"))
-        {
-            inputMode m = Stationar_;
+        inputMode m = Stationar_;
 
-            for (inputMode i = Stationar_; i !=InputMode_num_ ; i=(inputMode)(i+1))
+        for (inputMode i = Stationar_; i != InputMode_num_; i = (inputMode)(i + 1))
+        {
+            if (strstr((char *)payload, inputModeName(i).c_str()))
             {
-                if (strstr((char *)payload,inputModeName(i).c_str())){
-                    m = i;
-                    Serial.printf("found mode: %s", inputModeName(i).c_str());
-                }
+                m = i;
+                Serial.printf("found mode: %s", inputModeName(i).c_str());
             }
-            // if (m >= inputMode::InputMode_num_ - 1)
-            // {
-            //     Serial.printf("ERROR:not valid mode %d\n", m);
-            // }
-            // else
-            // {
-                if (m >= inputMode::TopBottom_)
-                {
-                    uint8_t anim = m - inputMode::TopBottom_ + 1;
-                    Serial.printf("animation is now %d\n", anim);
-                    hexController->set_pre_anim(anim);
-                }
-                else
-                {
-                    hexController->change_mode((Mode)m);
-                    Serial.printf("Mode is now %d\n", m);
-                }
-            // }
         }
-        else if (strstr(topic, "speed"))
+        if (m >= inputMode::TopBottom_)
         {
-            int s = atoi((char *)payload);
-            hexController->set_speed(s);
-            Serial.printf("speed is now %d\n", s);
+            uint8_t anim = m - inputMode::TopBottom_ + 1;
+            Serial.printf("animation is now %d\n", anim);
+            hexController->set_pre_anim(anim);
         }
-        // else if (strstr(topic, "anim"))
-        // {
-        //     int s = atoi((char *)payload);
-        //     hexController->set_pre_anim(s);
-        //     Serial.printf("animation is now %d\n", s);
+        else
+        {
+            hexController->change_mode((Mode)m);
+            Serial.printf("Mode is now %d\n", m);
+        }
         // }
-        else if (strstr(topic, "fade"))
-        {
-            int s = atoi((char *)payload);
-            hexController->set_fade(s);
-            Serial.printf("fade is now %d\n", s);
-        }
-        else if (strstr(topic, "brightness"))
-        {
-            int s = atoi((char *)payload);
-            hexController->set_brightness(s);
-            Serial.printf("brightness is now %d\n", s);
-        }
-        else if (strstr(topic, "layout"))
-        {
-            std::string delimiterBox("::");
-            std::string str((char *)payload);
-            int pos = str.find_first_of(delimiterBox);
+    }
+    else if (strstr(topic, "speed"))
+    {
+        int s = atoi((char *)payload);
+        hexController->set_speed(s);
+        Serial.printf("speed is now %d\n", s);
+    }
+    // else if (strstr(topic, "anim"))
+    // {
+    //     int s = atoi((char *)payload);
+    //     hexController->set_pre_anim(s);
+    //     Serial.printf("animation is now %d\n", s);
+    // }
+    else if (strstr(topic, "fade"))
+    {
+        int s = atoi((char *)payload);
+        hexController->set_fade(s);
+        Serial.printf("fade is now %d\n", s);
+    }
+    else if (strstr(topic, "rainbow"))
+    {
+        int s = atoi((char *)payload);
+        hexController->set_rainbow(s);
+        Serial.printf("rainbow is now %d\n", s);
+    }
+    else if (strstr(topic, "brightness"))
+    {
+        int s = atoi((char *)payload);
+        hexController->set_brightness(s);
+        Serial.printf("brightness is now %d\n", s);
+    }
+    else if (strstr(topic, "layout"))
+    {
+        std::string delimiterBox("::");
+        std::string str((char *)payload);
+        int pos = str.find_first_of(delimiterBox);
 
-            int boxNum = atoi(str.substr(0, pos).c_str());
-            str.erase(0, pos + delimiterBox.length());
-            int **layout = parseLayout(str, boxNum);
-            hexControllerSetup(boxNum, layout, false);
-        }
-        else if (strstr(topic, "singleHexColor"))
-        {
-            std::string delimiterBox("::");
-            std::string str((char *)payload);
+        int boxNum = atoi(str.substr(0, pos).c_str());
+        str.erase(0, pos + delimiterBox.length());
+        int **layout = parseLayout(str, boxNum);
+        hexControllerSetup(boxNum, layout, false);
+    }
+    else if (strstr(topic, "singleHexColor"))
+    {
+        std::string delimiterBox("::");
+        std::string str((char *)payload);
 
-            int pos = str.find_first_of(delimiterBox);
-            int boxId = atoi(str.substr(0, pos).c_str())-1;
-            str.erase(0, pos + delimiterBox.length());
-            CRGB *clr = parseColorFromText(str);
-            Serial.printf("should print box %d with color:\n", boxId);
-            printCRGB(*clr);
-            hexController->fill_one_hex(boxId, *clr);
-            hexController->change_mode(NotUpdating);
-            free(clr);
-        }
+        int pos = str.find_first_of(delimiterBox);
+        int boxId = atoi(str.substr(0, pos).c_str()) - 1;
+        str.erase(0, pos + delimiterBox.length());
+        CRGB *clr = parseColorFromText(str);
+        Serial.printf("should print box %d with color:\n", boxId);
+        printCRGB(*clr);
+        hexController->fill_one_hex(boxId, *clr);
+        hexController->change_mode(NotUpdating);
+        free(clr);
     }
 }
+
 void WifiSetup()
 {
     Serial.println("connecting to WiFi\n");
@@ -277,13 +281,14 @@ void loop()
     }
     else
     {
-        if (millis() > lastChangeMs + localChangePeriod){
+        if (millis() > lastChangeMs + localChangePeriod)
+        {
             hexController->next_mode();
             lastChangeMs = millis();
         }
     }
     if (power)
-    {   
+    {
         hexController->update();
     }
     else
