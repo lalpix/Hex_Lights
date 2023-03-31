@@ -80,92 +80,103 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
             power = false;
             Serial.println("powering off");
             hexController->fill_all_hex(CRGB::Black);
-        }else{
+        }
+        else
+        {
             power = true;
             Serial.println("powering on");
         }
     }
-
-    if (strstr(topic, "mode"))
+    if (power)
     {
-        inputMode m = Stationar_;
-
-        for (inputMode i = Stationar_; i != InputMode_num_; i = (inputMode)(i + 1))
+        if (strstr(topic, "mode"))
         {
-            if (strstr((char *)payload, inputModeName(i).c_str()))
+            inputMode m = Stationar_;
+
+            for (inputMode i = Stationar_; i != InputMode_num_; i = (inputMode)(i + 1))
             {
-                m = i;
-                Serial.printf("found mode: %s", inputModeName(i).c_str());
+                if (strstr((char *)payload, inputModeName(i).c_str()))
+                {
+                    m = i;
+                    Serial.printf("found mode: %s", inputModeName(i).c_str());
+                }
+            }
+            if (m >= inputMode::TopBottom_)
+            {
+                uint8_t anim = m - inputMode::TopBottom_ + 1;
+                Serial.printf("animation is now %d\n", anim);
+                hexController->set_pre_anim(anim);
+            }
+            else
+            {
+                hexController->change_mode((Mode)m);
+                Serial.printf("Mode is now %d\n", m);
             }
         }
-        if (m >= inputMode::TopBottom_)
+        else if (strstr(topic, "primaryColor"))
         {
-            uint8_t anim = m - inputMode::TopBottom_ + 1;
-            Serial.printf("animation is now %d\n", anim);
-            hexController->set_pre_anim(anim);
+            std::string str((char *)payload);
+            CRGB *clr = parseColorFromText(str);
+            hexController->set_color(*clr, 1);
+            free(clr);
         }
-        else
+        else if (strstr(topic, "secondaryColor"))
         {
-            hexController->change_mode((Mode)m);
-            Serial.printf("Mode is now %d\n", m);
+            std::string str((char *)payload);
+            CRGB *clr = parseColorFromText(str);
+            hexController->set_color(*clr, 2);
+            free(clr);
         }
-        // }
-    }
-    else if (strstr(topic, "speed"))
-    {
-        int s = atoi((char *)payload);
-        hexController->set_speed(s);
-        Serial.printf("speed is now %d\n", s);
-    }
-    // else if (strstr(topic, "anim"))
-    // {
-    //     int s = atoi((char *)payload);
-    //     hexController->set_pre_anim(s);
-    //     Serial.printf("animation is now %d\n", s);
-    // }
-    else if (strstr(topic, "fade"))
-    {
-        int s = atoi((char *)payload);
-        hexController->set_fade(s);
-        Serial.printf("fade is now %d\n", s);
-    }
-    else if (strstr(topic, "rainbow"))
-    {
-        int s = atoi((char *)payload);
-        hexController->set_rainbow(s);
-        Serial.printf("rainbow is now %d\n", s);
-    }
-    else if (strstr(topic, "brightness"))
-    {
-        int s = atoi((char *)payload);
-        hexController->set_brightness(s);
-        Serial.printf("brightness is now %d\n", s);
-    }
-    else if (strstr(topic, "layout"))
-    {
-        std::string delimiterBox("::");
-        std::string str((char *)payload);
-        int pos = str.find_first_of(delimiterBox);
+        else if (strstr(topic, "speed"))
+        {
+            int s = atoi((char *)payload);
+            hexController->set_speed(s);
+            Serial.printf("speed is now %d\n", s);
+        }
+        else if (strstr(topic, "fade"))
+        {
+            int s = atoi((char *)payload);
+            hexController->set_fade(s);
+            Serial.printf("fade is now %d\n", s);
+        }
+        else if (strstr(topic, "rainbow"))
+        {
+            int s = atoi((char *)payload);
+            hexController->set_rainbow(s);
+            Serial.printf("rainbow is now %d\n", s);
+        }
+        else if (strstr(topic, "brightness"))
+        {
+            int s = atoi((char *)payload);
+            hexController->set_brightness(s);
+            Serial.printf("brightness is now %d\n", s);
+        }
+        else if (strstr(topic, "layout"))
+        {
+            std::string delimiterBox("::");
+            std::string str((char *)payload);
+            int pos = str.find_first_of(delimiterBox);
 
-        int boxNum = atoi(str.substr(0, pos).c_str());
-        str.erase(0, pos + delimiterBox.length());
-        int **layout = parseLayout(str, boxNum);
-        hexControllerSetup(boxNum, layout, false);
-    }
-    else if (strstr(topic, "singleHexColor"))
-    {
-        std::string delimiterBox("::");
-        std::string str((char *)payload);
+            int boxNum = atoi(str.substr(0, pos).c_str());
+            str.erase(0, pos + delimiterBox.length());
+            int **layout = parseLayout(str, boxNum);
+            hexControllerSetup(boxNum, layout, false);
+        }
+        else if (strstr(topic, "singleHexColor"))
+        {
+            std::string delimiterBox("::");
+            std::string str((char *)payload);
 
-        int pos = str.find_first_of(delimiterBox);
-        int boxId = atoi(str.substr(0, pos).c_str()) - 1;
-        str.erase(0, pos + delimiterBox.length());
-        CRGB *clr = parseColorFromText(str);
-        Serial.printf("should print box %d with color:\n", boxId);
-        printCRGB(*clr);
-        hexController->fill_one_hex(boxId, *clr);
-        hexController->change_mode(NotUpdating);
-        free(clr);
+            int pos = str.find_first_of(delimiterBox);
+            int boxId = atoi(str.substr(0, pos).c_str()) - 1;
+            str.erase(0, pos + delimiterBox.length());
+            CRGB *clr = parseColorFromText(str);
+            Serial.printf("should print box %d with color:\n", boxId);
+            printCRGB(*clr);
+            hexController->fill_one_hex(boxId, *clr);
+            hexController->change_mode(NotUpdating);
+            free(clr);
+        }
     }
 }
 
