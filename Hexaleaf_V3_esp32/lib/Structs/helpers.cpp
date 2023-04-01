@@ -1,4 +1,23 @@
 #include "helpers.h"
+void eepromInit()
+{
+    EEPROM.begin(2048);
+    if (EEPROM.read(eepromStateAddr) != eepromStateNUM)
+    {
+        EEPROM.write(eepromStateAddr, eepromStateNUM);
+        EEPROM.write(modeAddr, 1);
+        EEPROM.write(rainbowAddr, 1);
+        EEPROM.write(speedAddr, 1);
+        EEPROM.write(fadeAddr, 1);
+        EEPROM.write(powerAddr, 1);
+        EEPROM.writeString(primaryClrAddr, "0,0,255");
+        EEPROM.writeString(secondaryClrAddr, "0,255,0");
+        EEPROM.writeString(layoutAddr, "1::0,0|");
+        EEPROM.commit();
+        Serial.println("eeprom initfill done");
+    }
+}
+
 void nblendU8TowardU8(uint8_t &cur, const uint8_t target, uint8_t amount)
 {
     if (cur == target)
@@ -18,9 +37,6 @@ void nblendU8TowardU8(uint8_t &cur, const uint8_t target, uint8_t amount)
     }
 }
 
-// Blend one CRGB color toward another CRGB color by a given amount.
-// Blending is linear, and done in the RGB color space.
-// This function modifies 'cur' in place.
 CRGB fadeTowardColor(CRGB &cur, const CRGB &target, uint8_t amount)
 {
     nblendU8TowardU8(cur.red, target.red, amount);
@@ -31,7 +47,6 @@ CRGB fadeTowardColor(CRGB &cur, const CRGB &target, uint8_t amount)
 
 int **parseLayout(std::string str, int numBoxes)
 {
-
     int **arr = new int *[numBoxes];
 
     int pos = 0, innerPos = 0, boxId = 0;

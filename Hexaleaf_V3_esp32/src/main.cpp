@@ -7,6 +7,7 @@
 #include <aws_iot.h>
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
+#include <EEPROM.h>
 
 #include "WiFiManager.h"
 
@@ -33,7 +34,7 @@ int localChangePeriod = 20000;
 long lastChangeMs = 0;
 bool power = true;
 bool localRun = false;
-bool firstSetup = true;
+
 // TODO  Storing last settings, layout at least
 // Upgrade audio to adjust levels over time
 // SET colors prim and sec
@@ -60,6 +61,21 @@ void hexControllerSetup(int numBoxes, int **layout, bool isFirstTime)
     hexController->change_mode(RotationOuter);
     hexController->set_brightness(255);
 }
+void hexControllerSetupFromText(const char *payload,bool firstSetup)
+{
+    std::string str((char *)payload);
+
+    std::string delimiterBox("::");
+    EEPROM.writeString(layoutAddr, (char *)payload);
+    EEPROM.commit();
+    int pos = str.find_first_of(delimiterBox);
+
+    int boxNum = atoi(str.substr(0, pos).c_str());
+    Serial.printf("running setup from text numbox %d first %d chars %s\n", boxNum, firstSetup, payload);
+    str.erase(0, pos + delimiterBox.length());
+    int **layout = parseLayout(str, boxNum);
+    hexControllerSetup(boxNum, layout, firstSetup);
+}
 void messageHandler(char *topic, byte *payload, unsigned int length)
 {
     Serial.print("incoming topic: ");
@@ -81,6 +97,7 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
             power = false;
             Serial.println("powering off");
             hexController->fill_all_hex(CRGB::Black);
+            hexController->show();
         }
         else
         {
@@ -112,11 +129,14 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
             {
                 hexController->change_mode((Mode)m);
                 Serial.printf("Mode is now %d\n", m);
+                            EEPROM.write(modeAddr, m);
             }
         }
         else if (strstr(topic, "primaryColor"))
         {
             std::string str((char *)payload);
+            EEPROM.writeString(primaryClrAddr, (char *)payload);
+            EEPROM.commit();
             CRGB *clr = parseColorFromText(str);
             hexController->set_color(*clr, 0);
             free(clr);
@@ -124,6 +144,8 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
         else if (strstr(topic, "secondaryColor"))
         {
             std::string str((char *)payload);
+            EEPROM.writeString(secondaryClrAddr, (char *)payload);
+            EEPROM.commit();
             CRGB *clr = parseColorFromText(str);
             hexController->set_color(*clr, 1);
             free(clr);
@@ -132,36 +154,37 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
         {
             int s = atoi((char *)payload);
             hexController->set_speed(s);
+            EEPROM.write(speedAddr, s);
+            EEPROM.commit();
             Serial.printf("speed is now %d\n", s);
         }
         else if (strstr(topic, "fade"))
         {
             int s = atoi((char *)payload);
             hexController->set_fade(s);
+            EEPROM.write(fadeAddr, s);
+            EEPROM.commit();
             Serial.printf("fade is now %d\n", s);
         }
         else if (strstr(topic, "rainbow"))
         {
             int s = atoi((char *)payload);
             hexController->set_rainbow(s);
+            EEPROM.write(rainbowAddr,s);
+            EEPROM.commit();
             Serial.printf("rainbow is now %d\n", s);
         }
         else if (strstr(topic, "brightness"))
         {
             int s = atoi((char *)payload);
             hexController->set_brightness(s);
+            EEPROM.write(brightnessAddr, s);
+            EEPROM.commit();
             Serial.printf("brightness is now %d\n", s);
         }
         else if (strstr(topic, "layout"))
         {
-            std::string delimiterBox("::");
-            std::string str((char *)payload);
-            int pos = str.find_first_of(delimiterBox);
-
-            int boxNum = atoi(str.substr(0, pos).c_str());
-            str.erase(0, pos + delimiterBox.length());
-            int **layout = parseLayout(str, boxNum);
-            hexControllerSetup(boxNum, layout, false);
+            hexControllerSetupFromText((char *)payload,false);
         }
         else if (strstr(topic, "singleHexColor"))
         {
@@ -180,7 +203,6 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
         }
     }
 }
-
 void WifiSetup()
 {
     Serial.println("connecting to WiFi\n");
@@ -246,47 +268,48 @@ void WifiSetup()
     publishMessage(tpc, "setup done");
     Serial.println("MQTT_Connected!");
 }
+void loadDataFromEEPROM()
+{
+    String primaryClr = EEPROM.readString(primaryClrAddr);
+    CRGB *priClr = parseColorFromText(std::string(primaryClr.c_str()));
+    hexController->set_color(*priClr, 1);
+    free(priClr);
+    String secondaryClr = EEPROM.readString(secondaryClrAddr);
+    CRGB *secClr = parseColorFromText(std::string(secondaryClr.c_str()));
+    hexController->set_color(*secClr, 2);
+    free(secClr);
+    Mode modeFromEEPROM = (Mode)EEPROM.read(modeAddr);
+    hexController->change_mode(modeFromEEPROM);
+    hexController->set_brightness(EEPROM.read(brightnessAddr));
+    hexController->set_fade(EEPROM.read(fadeAddr));
+    hexController->set_speed(EEPROM.read(speedAddr));
+    hexController->set_rainbow(EEPROM.read(rainbowAddr));
+    power = EEPROM.read(powerAddr);
+    if(!power){
+        hexController->fill_all_hex(CRGB::Black);
+        hexController->show();
+    }
+}
 void setup()
 {
+
+    eepromInit();
     pinMode(0, INPUT_PULLUP);
     Serial.begin(115200);
     delay(2000); // power-up safety delay
     Serial.println("> Setup....");
-    int **setupLayout = new int *[1];
-    setupLayout[0] = new int[2];
-    setupLayout[0][0] = 0;
-    setupLayout[0][1] = 0;
-    hexControllerSetup(1, setupLayout, true);
+    String layoutLoad = EEPROM.readString(layoutAddr);
+    Serial.println(layoutLoad);
+    hexControllerSetupFromText(layoutLoad.c_str(), true);
     WifiSetup();
+    loadDataFromEEPROM();
+
     Serial.println("Setup DONE");
 
     delay(2000);
 }
 void loop()
 {
-
-    // while (true)
-    // {
-    //     std::string delimiterBox("::");
-    //     std::string str("4::0,0|3,0|0,5|0,4|"); // 3,4|5,6|
-    //     int pos = str.find_first_of(delimiterBox);
-
-    //     int boxNum = atoi(str.substr(0, pos).c_str());
-    //     str.erase(0, pos + delimiterBox.length());
-    //     // parseLayout(str, boxNum);
-    //     int **res = parseLayout(str, boxNum);
-    //     for (size_t i = 0; i < boxNum; i++)
-    //     {
-    //         for (size_t j = 0; j < 2; j++)
-    //         {
-    //             Serial.printf("box:%d cord:%d - %d\n", i, j, res[i][j]);
-    //         }
-    //     }
-    //     hexControllerSetup(boxNum, res,false);
-    //     delay(3000);
-    //     free(res);
-    // }
-
     if (!localRun)
     {
         client.loop();

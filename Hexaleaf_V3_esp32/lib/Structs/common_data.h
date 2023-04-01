@@ -9,14 +9,14 @@ enum inputMode
     StationarOuter_,
     RandColorRandHex_,
     RandColorRandHexFade_,
-        RainbowSwipeVert_,
+    RainbowSwipeVert_,
     RainbowSwipeHorz_,
     AudioBeatReact_, //
     AudioFreqPool_,
     TwoColorFading_,
     //--after that it is animation
-    TopBottom_,
     LeftRight_,
+    TopBottom_,
     MeetInMidle_,
     DirectionCircle_,
     InputMode_num_,

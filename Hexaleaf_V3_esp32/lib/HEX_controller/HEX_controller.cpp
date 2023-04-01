@@ -500,7 +500,6 @@ void Hex_controller::update()
         }
         case TwoColorFading:
             rainbow = 0;
-            // for all hex
             for (int h = 0; h < NumBoxes; h++)
             {
                 if (nodes[h]->color == nodes[h]->colorTo)
