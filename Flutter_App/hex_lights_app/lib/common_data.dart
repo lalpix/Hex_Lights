@@ -8,6 +8,7 @@ enum Topics {
   speed,
   mode,
   power,
+  rainbow,
 }
 
 enum Mode {
@@ -15,10 +16,12 @@ enum Mode {
   RotationOuter,
   StationarOuter,
   RandColorRandHex,
+  RandColorRandHexFade,
   RainbowSwipeVert,
   RainbowSwipeHorz,
   AudioBeatReact, //
   AudioFreqPool, //
+  TwoColorFading,
   TopBottom,
   LeftRight,
   MeetInMidle,
@@ -35,6 +38,8 @@ String modeName(Mode m) {
       return 'Pouze okraje';
     case Mode.RandColorRandHex:
       return 'Náhodné';
+    case Mode.RandColorRandHexFade:
+      return 'Náhodné s prolnutím';
     case Mode.RainbowSwipeVert:
       return 'Duha vertikálně';
     case Mode.RainbowSwipeHorz:
@@ -43,6 +48,8 @@ String modeName(Mode m) {
       return 'Reakce na beat';
     case Mode.AudioFreqPool:
       return 'Reakce na frekvenci';
+    case Mode.TwoColorFading:
+      return 'Prolnutí dvou barev';
     case Mode.TopBottom:
       return 'Plnění nahoru a dolů';
     case Mode.LeftRight:

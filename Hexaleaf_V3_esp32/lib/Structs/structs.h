@@ -55,10 +55,10 @@ enum Mode
 {
 
     Stationar, // all hex same color
-    // Rotation,  // all hex rotating
     RotationOuter,
     StationarOuter,
     RandColorRandHex,
+    RandColorRandHexFade,
     RainbowSwipeVert,
     RainbowSwipeHorz,
     AudioBeatReact,

@@ -82,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         setState(() {
                           rainbow = val;
                         });
-                        mqttClient.publishMessage(Topics.fade.name, rainbow ? '0' : '1');
+                        mqttClient.publishMessage(Topics.rainbow.name, rainbow ? '1' : '0');
                       })
                 ],
               ),
@@ -100,7 +100,8 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () async {
               Color color = await myColorPicker(context, primaryColor, 'Primární barva');
               setState(() => primaryColor = color);
-              mqttClient.publishMessage(Topics.primaryColor.name, primaryColor.toString());
+              mqttClient.publishMessage(Topics.primaryColor.name,
+                  '${primaryColor.red},${primaryColor.green},${primaryColor.blue}');
             },
           ),
           const SizedBox(
@@ -115,7 +116,8 @@ class _HomeScreenState extends State<HomeScreen> {
               Color color = await myColorPicker(context, secondaryColor, 'Sekundární barva');
               setState(() {
                 secondaryColor = color;
-                mqttClient.publishMessage(Topics.secondaryColor.name, secondaryColor.toString());
+                mqttClient.publishMessage(Topics.secondaryColor.name,
+                    '${secondaryColor.red},${secondaryColor.green},${secondaryColor.blue}');
               });
             },
           ),
@@ -142,25 +144,48 @@ class _HomeScreenState extends State<HomeScreen> {
       );
   menuItems() => ColapsableListTile(
         name: 'Efekty',
-        body: Row(children: [
-          clickableBox(
-              chosen: selectedMode == Mode.RotationOuter,
-              text: 'Bežící okraj',
-              onTap: () {
-                setState(() => selectedMode = Mode.RotationOuter);
+        body: Column(children: [
+          Row(children: [
+            clickableBox(
+                chosen: selectedMode == Mode.RotationOuter,
+                text: modeName(Mode.RotationOuter),
+                onTap: () {
+                  setState(() => selectedMode = Mode.RotationOuter);
+                  mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
+                }),
+            const SizedBox(
+              width: 10,
+            ),
+            clickableBox(
+              chosen: selectedMode == Mode.RandColorRandHex,
+              text: modeName(Mode.RandColorRandHex),
+              onTap: () => setState(() {
+                selectedMode = Mode.RandColorRandHex;
                 mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
               }),
-          const SizedBox(
-            width: 10,
-          ),
-          clickableBox(
-            chosen: selectedMode == Mode.RandColorRandHex,
-            text: 'Náhodné',
-            onTap: () => setState(() {
-              selectedMode = Mode.RandColorRandHex;
-              mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
-            }),
-          )
+            )
+          ]),
+          const SizedBox(height: 5),
+          Row(children: [
+            clickableBox(
+                chosen: selectedMode == Mode.RandColorRandHexFade,
+                text: modeName(Mode.RandColorRandHexFade),
+                onTap: () {
+                  setState(() => selectedMode = Mode.RandColorRandHexFade);
+                  mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
+                }),
+            const SizedBox(
+              width: 10,
+            ),
+            clickableBox(
+                chosen: selectedMode == Mode.TwoColorFading,
+                text: modeName(Mode.TwoColorFading),
+                onTap: () {
+                  setState(() => selectedMode = Mode.TwoColorFading);
+                  mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
+                }),
+          ]),
+          const SizedBox(height: 5),
         ]),
       );
   menuItemsBezEfektu() => ColapsableListTile(

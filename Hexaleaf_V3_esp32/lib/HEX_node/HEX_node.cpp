@@ -95,11 +95,10 @@ CRGB *Hexnode::fill_n_leds(CRGB clr, CRGB *leds, uint8_t n)
   }
   return leds;
 }
-CRGB Hexnode::fadeToColor(CRGB *leds, float speed)
+CRGB *Hexnode::fadeToColor(CRGB *leds, uint8_t amount)
 {
-  fadeTimeMs = speed;
-  // TOODOOO
-  return color;
+  color = fadeTowardColor(color, colorTo, amount);
+  return fill_hex(color, leds);
 }
 
 void Hexnode::ledscompute_fade_vector()

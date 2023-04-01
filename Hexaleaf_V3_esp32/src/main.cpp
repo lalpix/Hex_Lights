@@ -24,9 +24,10 @@ char const *topicArray[] = {
     "primaryColor",
     "secondaryColor",
     "layout",
+    "rainbow",
     "power",
 };
-int num_topics = 9;
+int num_topics = 10;
 Hex_controller *hexController;
 int localChangePeriod = 20000;
 long lastChangeMs = 0;
@@ -117,14 +118,14 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
         {
             std::string str((char *)payload);
             CRGB *clr = parseColorFromText(str);
-            hexController->set_color(*clr, 1);
+            hexController->set_color(*clr, 0);
             free(clr);
         }
         else if (strstr(topic, "secondaryColor"))
         {
             std::string str((char *)payload);
             CRGB *clr = parseColorFromText(str);
-            hexController->set_color(*clr, 2);
+            hexController->set_color(*clr, 1);
             free(clr);
         }
         else if (strstr(topic, "speed"))

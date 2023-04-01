@@ -179,6 +179,7 @@ void Hex_controller::set_speed(uint16_t spd)
 void Hex_controller::set_color(CRGB clr, int idx)
 {
     clr_arr[idx] = clr;
+    printCRGB(clr_arr[idx]);
 }
 void Hex_controller::set_brightness(uint8_t b)
 {
@@ -221,7 +222,7 @@ void Hex_controller::change_mode(Mode m)
         drawEveryNthMs = 1;
         fade = 70;
     }
-    else if (mode == Mode::RainbowSwipeHorz || mode == Mode::RainbowSwipeVert)
+    else if (mode == Mode::RainbowSwipeHorz || mode == Mode::RainbowSwipeVert || mode == Mode::RandColorRandHexFade)
     {
         drawEveryNthMs = 30;
     }
@@ -324,24 +325,6 @@ void Hex_controller::update()
             }
             break;
         }
-        // Not great effect, not using this
-        /*case Rotation:
-        {
-            for (int i = 0; i < NUM_BOXES; i++)
-            {
-                if (!fade)
-                {
-                    fill_one_led_all_hex(clr_arr[0], (step_count + 1) % LEDS_IN_BOX);
-                    fill_one_led_all_hex(CRGB::Black, step_count % LEDS_IN_BOX);
-                }
-                else
-                {
-                    fill_one_led_all_hex(clr_arr[0], step_count % LEDS_IN_BOX);
-                }
-            }
-            step_count++;
-            break;
-        }*/
         case RotationOuter:
         {
             if (step_count >= outer_led_num)
@@ -359,6 +342,22 @@ void Hex_controller::update()
                 uint8_t idx = rand() % Hex_controller::NumBoxes;
                 nodes[idx]->fill_hex(CHSV(random8(), random8(), 255), leds);
             }
+            break;
+        }
+        case RandColorRandHexFade:
+        {
+            rainbow = 0;
+            // for all hex
+            for (int h = 0; h < NumBoxes; h++)
+            {
+                if (nodes[h]->color == nodes[h]->colorTo)
+                {
+
+                    nodes[h]->colorTo = CRGB(random8(), random8(), random8());
+                }
+                leds = nodes[h]->fadeToColor(leds, 1);
+            }
+
             break;
         }
         case PresetAnim:
@@ -500,7 +499,25 @@ void Hex_controller::update()
             break;
         }
         case TwoColorFading:
-        //TODO HERE - get random collor, Add it to hex module. fade step to that color, if reached, create another random color and fade to that
+            rainbow = 0;
+            // for all hex
+            for (int h = 0; h < NumBoxes; h++)
+            {
+                if (nodes[h]->color == nodes[h]->colorTo)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        int dif = abs(clr_arr[1][i]) - abs(clr_arr[0][i]);
+                        int dir = rand() % abs(dif);
+                        if (dif < 0)
+                        {
+                            dir = dir * (-1);
+                        }
+                        nodes[h]->colorTo[i] = clr_arr[0][i] + dir;
+                    }
+                }
+                leds = nodes[h]->fadeToColor(leds, 1);
+            }
             break;
         case NotUpdating:
             break;
