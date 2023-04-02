@@ -16,8 +16,6 @@ void main() async {
   var dir = await getApplicationDocumentsDirectory();
   var path = dir.path;
   Hive.init(path);
-  final box = await Hive.openBox('HexLayoutStorage');
-  await box.clear();
   bool freshStart = await layoutBoxEmpty();
   String route = "/home";
   runApp(MyApp(

@@ -28,8 +28,10 @@ class _SingleSetScreenState extends State<SingleSetScreen> {
   }
 
   Future<Map<int, Coordinates>> loadHexGridData() async {
-    final box = await Hive.openBox('HexUiLayoutStorage');
-    List<String>? rawList = box.get('list') as List<String>?;
+    final box = await Hive.openBox('HexLayoutStorage');
+    List<String>? rawList = box.get('uiList') as List<String>?;
+    print('loaded: $rawList');
+
     Map<int, Coordinates> map = {};
     if (rawList != null) {
       List<List<String>> list = List.generate(rawList.length, (index) => rawList[index].split(','));
@@ -53,13 +55,15 @@ class _SingleSetScreenState extends State<SingleSetScreen> {
         future: loadHexGridData(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return const Center(child: Text('Loading...'));
+            return const CircularProgressIndicator();
+          } else if (snapshot.data!.isEmpty) {
+            return const Center(child: Text('Layout has not been setup'));
           }
           var widthAndHeight =
               hexGridHelpers.calcWidthAndHeightFromUi(snapshot.data!.values.toList());
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Rozsviťte moduly po jednom'),
+              title: const Text('Set module color individualy'),
             ),
             body: Padding(
               padding: const EdgeInsets.all(8.0),

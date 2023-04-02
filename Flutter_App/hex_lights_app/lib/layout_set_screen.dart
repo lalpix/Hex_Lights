@@ -30,7 +30,7 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
   @override
   void initState() {
     _setupFreshHexList();
-    _loadHexGridData();
+    //_loadHexGridData();
     super.initState();
     hexGridHelpers.calculateCoordsForUi(hexList, false);
   }
@@ -66,7 +66,6 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
   }
 
   Future<void> _saveHexGridData() async {
-    final uiBox = await Hive.openBox('HexUiLayoutStorage');
     final box = await Hive.openBox('HexLayoutStorage');
     List<String>? stringList = List.empty(growable: true);
     List<String>? uiStringList = List.empty(growable: true);
@@ -78,17 +77,23 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
       }
     }
     hexGridHelpers.calculateCoordsForUi(hexList, false);
-
-    await uiBox.clear();
+    print('saving: $stringList');
     await box.clear();
-    await uiBox.put('list', uiStringList);
+    await box.put('uiList', uiStringList);
     await box.put('list', stringList);
+    await box.close();
   }
 
-  _loadHexGridData() async {
+  Future<bool> _loadHexGridData() async {
     final box = await Hive.openBox('HexLayoutStorage');
-    List<String>? rawList = box.get('list') as List<String>?;
+
+    List<String>? rawList = await box.get('list') as List<String>?;
+
+    print('loaded: $rawList');
     if (rawList != null) {
+      if (hexList.length != 2) {
+        return true;
+      }
       List<List<String>> list = List.generate(rawList.length, (index) => rawList[index].split(','));
       list.sort((a, b) => int.parse(a[0]).compareTo(int.parse(b[0])));
       for (var item in list) {
@@ -103,8 +108,10 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
       setState(() {
         hexGridHelpers.calculateCoordsForUi(hexList, false);
       });
+      return true;
     } else {
       print('Loading data: no data found => fresh start');
+      return false;
     }
   }
 
@@ -118,66 +125,74 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
   Widget build(BuildContext context) {
     final MQTTClientWrapper client =
         ModalRoute.of(context)!.settings.arguments as MQTTClientWrapper;
-    List<String> data;
     StringBuffer layoutMsg = StringBuffer();
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nastavte svoje rozložení'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              HexagonOffsetGrid.evenFlat(
-                rows: hexGridHelpers.height,
-                columns: hexGridHelpers.width,
-                buildTile: (q, r) => _myHexWidgetBuilder(Coordinates.axial(q, r)),
+    return FutureBuilder(
+      future: _loadHexGridData(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const CircularProgressIndicator();
+        }
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Set your own layout'),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  HexagonOffsetGrid.evenFlat(
+                    rows: hexGridHelpers.height,
+                    columns: hexGridHelpers.width,
+                    buildTile: (q, r) => _myHexWidgetBuilder(Coordinates.axial(q, r)),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-      floatingActionButton: Row(children: [
-        const SizedBox(
-          width: 40,
-        ),
-        OutlinedButton(
-          onPressed: () async {
-            setState(() {
-              hexList.clear();
-              _setupFreshHexList();
-            });
-          },
-          child: const Text(
-            "clear",
-            style: TextStyle(fontSize: 40),
-          ),
-        ),
-        const Expanded(child: Text('')),
-        OutlinedButton(
-          onPressed: () async => {
-            await _saveHexGridData(),
-            layoutMsg.clear(),
-            layoutMsg.write('${hexList.length - 1}::'),
-            for (var hex in hexList)
-              {
-                if (hex.seqId != 0) //dont include base
-                  {
-                    //-2 is offset for the base that is acounted here but not on device
-                    layoutMsg.write('${hex.coord.q},${hex.coord.r - 2}|'),
-                  }
+          floatingActionButton: Row(children: [
+            const SizedBox(
+              width: 40,
+            ),
+            OutlinedButton(
+              onPressed: () async {
+                setState(() {
+                  hexList.clear();
+                  _setupFreshHexList();
+                });
+                await _saveHexGridData();
               },
-            client.publishMessage(Topics.layout.name, layoutMsg.toString()),
-            Navigator.pop(context),
-          },
-          child: const Text(
-            "finish",
-            style: TextStyle(fontSize: 40),
-          ),
-        ),
-      ]),
+              child: const Text(
+                "clear",
+                style: TextStyle(fontSize: 40),
+              ),
+            ),
+            const Expanded(child: Text('')),
+            OutlinedButton(
+              onPressed: () async => {
+                await _saveHexGridData(),
+                layoutMsg.clear(),
+                layoutMsg.write('${hexList.length - 1}::'),
+                for (var hex in hexList)
+                  {
+                    if (hex.seqId != 0) //dont include base
+                      {
+                        //-2 is offset for the base that is acounted here but not on device
+                        layoutMsg.write('${hex.coord.q},${hex.coord.r - 2}|'),
+                      }
+                  },
+                client.publishMessage(Topics.layout.name, layoutMsg.toString()),
+                Navigator.pop(context),
+              },
+              child: const Text(
+                "finish",
+                style: TextStyle(fontSize: 40),
+              ),
+            ),
+          ]),
+        );
+      },
     );
   }
 
@@ -210,7 +225,6 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
 
   HexagonWidgetBuilder mainBodyHex(Coordinates ci, idx) {
     bool canBeRemoved = idx == lastId && idx > 1;
-    Hexagon h = hexList.firstWhere((element) => element.seqId == idx);
     if (idx == 0) {
       return HexagonWidgetBuilder(
         padding: 2.0,
