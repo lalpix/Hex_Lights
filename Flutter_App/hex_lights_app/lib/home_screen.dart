@@ -10,7 +10,6 @@ import 'common_data.dart';
 import 'mymqtt.dart';
 
 class HomeScreen extends StatefulWidget {
-  //pass main color from homescreen
   const HomeScreen(this.freshStart, {super.key});
   final bool freshStart;
   @override

@@ -33,9 +33,9 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
     super.initState();
     hexGridHelpers.calculateCoordsForUi(hexList, false);
   }
-
+  
+  //adding with coordinates from UI
   _addHexMoudle(Coordinates c) {
-    //c is UI
     Hexagon hexBefore = hexList.firstWhere((element) => element.seqId == lastId);
     lastId = lastId + 1;
     List<Coordinates> dirList = hexBefore.uiCoord.q.isEven ? dirForEven : dirForOdd;

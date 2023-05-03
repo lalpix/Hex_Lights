@@ -8,8 +8,7 @@ import 'package:hexagon/hexagon.dart';
 import 'package:hive/hive.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 // ignore: unused_import, depend_on_referenced_packages
-import 'package:collection/collection.dart'; // You have to add this manually, for some reason it cannot be added automatically
-
+import 'package:collection/collection.dart'; 
 
 // USING AXIAL COORDINATES  https://www.redblobgames.com/grids/hexagons/#coordinates-offset
 class SingleSetScreen extends StatefulWidget {
