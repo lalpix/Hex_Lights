@@ -1,16 +1,12 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hex_lights_app/single_set_screen.dart';
 import 'package:hex_lights_app/utils/hexagon_model.dart';
 import 'package:hive/hive.dart';
 import 'layout_set_screen.dart';
 import 'home_screen.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
+// ignore: depend_on_referenced_packages
+import 'package:path_provider/path_provider.dart'; //needed
 
-//
-///---------------------------
-///  ROTATION outer, randcolor rand HEX
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   var dir = await getApplicationDocumentsDirectory();

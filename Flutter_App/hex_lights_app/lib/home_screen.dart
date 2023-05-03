@@ -1,6 +1,3 @@
-import 'dart:async';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:hex_lights_app/utils/button_mode_child.dart';
 import 'package:hex_lights_app/utils/color_picker.dart';
@@ -47,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   switchRow() => ColapsableListTile(
           body: Row(mainAxisSize: MainAxisSize.max, children: [
         Expanded(
-          flex: 1,
+          flex: 2,
           child: Padding(
             padding: const EdgeInsets.all(10),
             child: ElevatedButton(
@@ -70,12 +67,12 @@ class _HomeScreenState extends State<HomeScreen> {
           width: 10,
         ),
         Expanded(
-          flex: 1,
+          flex: 3,
           child: Column(
             children: [
               Row(
                 children: [
-                  const Text('Měnící barva'),
+                  const Text('Changing colors'),
                   Switch(
                       value: rainbow,
                       onChanged: (val) {
@@ -94,11 +91,11 @@ class _HomeScreenState extends State<HomeScreen> {
         body: Row(children: [
           clickableBox(
             chosen: false,
-            text: 'Primární barva',
+            text: 'Primary color',
             color: primaryColor,
             textColor: textColor(primaryColor),
             onTap: () async {
-              Color color = await myColorPicker(context, primaryColor, 'Primární barva');
+              Color color = await myColorPicker(context, primaryColor, 'Primary color');
               setState(() => primaryColor = color);
               mqttClient.publishMessage(Topics.primaryColor.name,
                   '${primaryColor.red},${primaryColor.green},${primaryColor.blue}');
@@ -109,11 +106,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           clickableBox(
             chosen: false,
-            text: 'Sekundární barva',
+            text: 'Secondary color',
             color: secondaryColor,
             textColor: textColor(secondaryColor),
             onTap: () async {
-              Color color = await myColorPicker(context, secondaryColor, 'Sekundární barva');
+              Color color = await myColorPicker(context, secondaryColor, 'Secondary color');
               setState(() {
                 secondaryColor = color;
                 mqttClient.publishMessage(Topics.secondaryColor.name,
@@ -137,13 +134,13 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             child: const Padding(
               padding: EdgeInsets.all(20.0),
-              child: Text('Nastavit jednotlivě'),
+              child: Text('Set single'),
             ),
           ),
         ),
       );
   menuItems() => ColapsableListTile(
-        name: 'Efekty',
+        name: 'Efects',
         body: Column(children: [
           Row(children: [
             clickableBox(
@@ -189,11 +186,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ]),
       );
   menuItemsBezEfektu() => ColapsableListTile(
-        name: 'Bez efektu',
+        name: 'Static',
         body: Row(children: [
           clickableBox(
               chosen: selectedMode == Mode.Stationar,
-              text: 'Celá plocha',
+              text: 'All',
               onTap: () {
                 setState(() => selectedMode = Mode.Stationar);
                 mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
@@ -203,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           clickableBox(
             chosen: selectedMode == Mode.StationarOuter,
-            text: 'Pouze okraje',
+            text: 'Edges only',
             onTap: () => setState(() {
               selectedMode = Mode.StationarOuter;
               mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
@@ -212,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ]),
       );
   menuItemsAnimFill() => ColapsableListTile(
-      name: 'Animace plněním',
+      name: 'Fill animation',
       body: Column(
         children: [
           Row(
@@ -297,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ]));
   brigtnessWidget() => ColapsableListTile(
           body: Row(children: [
-        const Text('Jas'),
+        const Text('Shine'),
         Expanded(
           child: Slider(
             max: 100,
@@ -312,11 +309,11 @@ class _HomeScreenState extends State<HomeScreen> {
         )
       ]));
   soundAnimWidget() => ColapsableListTile(
-        name: 'Hudebni animace',
+        name: 'Music animation',
         body: Row(children: [
           clickableBox(
             chosen: selectedMode == Mode.AudioFreqPool,
-            text: 'Ekvalizér',
+            text: 'Equalizer',
             onTap: () {
               setState(() {
                 selectedMode = Mode.AudioFreqPool;
@@ -367,16 +364,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   return [
                     const PopupMenuItem<int>(
                       value: 0,
-                      child: Text("Upravit rozložení"),
+                      child: Text("Change layout"),
                     ),
                     const PopupMenuItem<int>(
                       value: 1,
-                      child: Text("Opakovat pokus o připojení"),
+                      child: Text("Retry server connection"),
                     ),
-                    PopupMenuItem<int>(
-                      value: 1,
-                      child: Text("Server status ${mqttClient.subscriptionState.name}"),
-                    ),
+                    // PopupMenuItem<int>(
+                    //   value: 1,
+                    //   child: Text("Server status ${mqttClient.subscriptionState.name}"),
+                    // ),
                   ];
                 },
                 onSelected: (result) {

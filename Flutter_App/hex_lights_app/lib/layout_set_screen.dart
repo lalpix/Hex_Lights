@@ -30,7 +30,6 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
   @override
   void initState() {
     _setupFreshHexList();
-    //_loadHexGridData();
     super.initState();
     hexGridHelpers.calculateCoordsForUi(hexList, false);
   }
