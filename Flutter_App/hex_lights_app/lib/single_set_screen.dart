@@ -31,7 +31,7 @@ class _SingleSetScreenState extends State<SingleSetScreen> {
   Future<Map<int, Coordinates>> loadHexGridData() async {
     final box = await Hive.openBox('HexLayoutStorage');
     List<String>? rawList = box.get('uiList') as List<String>?;
-    print('loaded: $rawList');
+    debugPrint('loaded: $rawList');
 
     Map<int, Coordinates> map = {};
     if (rawList != null) {

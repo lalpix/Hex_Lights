@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
@@ -38,11 +39,11 @@ class MQTTClientWrapper {
   // waiting for the connection, if an error occurs, print it and disconnect
   Future<void> _connectClient() async {
     try {
-      print('client connecting....');
+      debugPrint('client connecting....');
       connectionState = MqttCurrentConnectionState.CONNECTING;
       await client.connect('test1', 'testtest');
     } on Exception catch (e) {
-      print('client exception - $e');
+      debugPrint('client exception - $e');
       connectionState = MqttCurrentConnectionState.ERROR_WHEN_CONNECTING;
       client.disconnect();
     }
@@ -50,9 +51,9 @@ class MQTTClientWrapper {
     // when connected, print a confirmation, else print an error
     if (client.connectionStatus?.state == MqttConnectionState.connected) {
       connectionState = MqttCurrentConnectionState.CONNECTED;
-      print('client connected');
+      debugPrint('client connected');
     } else {
-      print('ERROR client connection failed - disconnecting, status is ${client.connectionStatus}');
+      debugPrint('ERROR client connection failed - disconnecting, status is ${client.connectionStatus}');
       connectionState = MqttCurrentConnectionState.ERROR_WHEN_CONNECTING;
       client.disconnect();
     }
@@ -73,34 +74,20 @@ class MQTTClientWrapper {
     client.onConnected = _onConnected;
   }
 
-  void subscribeToTopic(String topicName) {
-    print('Subscribing to the $topicName topic');
-    client.subscribe(topicName, MqttQos.atMostOnce);
-    client.updates?.listen((List<MqttReceivedMessage<MqttMessage>> c) {
-      //here add msg handler
-      //probably not needed for app
-      final MqttMessage recMess = c[0].payload;
-      var message = recMess.toString;
-
-      print('YOU GOT A NEW MESSAGE:');
-      print(message);
-    });
-  }
-
   void publishMessage(String topic, String message) {
     final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
-    print('topic: $topic msg: $message');
+    debugPrint('topic: $topic msg: $message');
     builder.addString(message);
     client.publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
   }
 
   void _onDisconnected() {
-    print('OnDisconnected client callback - Client disconnection');
+    debugPrint('OnDisconnected client callback - Client disconnection');
     connectionState = MqttCurrentConnectionState.DISCONNECTED;
   }
 
   void _onConnected() {
     connectionState = MqttCurrentConnectionState.CONNECTED;
-    print('OnConnected client callback - Client connection was sucessful');
+    debugPrint('OnConnected client callback - Client connection was sucessful');
   }
 }

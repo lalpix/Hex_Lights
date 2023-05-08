@@ -7,8 +7,9 @@ import 'package:hex_lights_app/mymqtt.dart';
 import 'package:hexagon/hexagon.dart';
 import 'package:hex_lights_app/utils/hexagon_model.dart';
 import 'package:hive/hive.dart';
+// ignore: depend_on_referenced_packages, unused_import
 import 'package:collection/collection.dart';
-import 'package:mqtt_client/mqtt_client.dart'; // You have to add this manually, for some reason it cannot be added automatically
+// You have to add this manually, for some reason it cannot be added automatically
 
 // USING AXIAL COORDINATES  https://www.redblobgames.com/grids/hexagons/#coordinates-offset
 
@@ -76,7 +77,7 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
       }
     }
     hexGridHelpers.calculateCoordsForUi(hexList, false);
-    print('saving: $stringList');
+    debugPrint('saving: $stringList');
     await box.clear();
     await box.put('uiList', uiStringList);
     await box.put('list', stringList);
@@ -88,7 +89,7 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
 
     List<String>? rawList = await box.get('list') as List<String>?;
 
-    print('loaded: $rawList');
+    debugPrint('loaded: $rawList');
     if (rawList != null) {
       if (hexList.length != 2) {
         return true;
@@ -109,7 +110,7 @@ class _LayoutSetScreenState extends State<LayoutSetScreen> {
       });
       return true;
     } else {
-      print('Loading data: no data found => fresh start');
+      debugPrint('Loading data: no data found => fresh start');
       return false;
     }
   }
