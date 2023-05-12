@@ -142,8 +142,6 @@ void Hex_controller::fill_one_hex(uint8_t hex, CRGB clr)
 }
 void Hex_controller::fill_all_hex(CRGB clr)
 {
-    // mySerial.print("filling all hex with clr: ");
-    // printCRGB(clr);
     for (int i = 0; i < Hex_controller::TotalLeds; i++)
     {
         leds[i] = clr;
@@ -165,7 +163,6 @@ void Hex_controller::fill_one_side_one_hex(CRGB clr, uint8_t hex, uint8_t dir)
 // user input
 void Hex_controller::set_pre_anim(uint8_t n)
 {
-    // Serial.printf("setting anim%d\n",n);
     mode = PresetAnim;
     fill_done = true;
     preset = n;
@@ -209,7 +206,6 @@ void Hex_controller::set_rainbow(int r)
 
 void Hex_controller::change_mode(Mode m)
 {
-    // Serial.printf("setting mode %d\n",m);
     fill_mode = Not_fill_mode;
     fill_done = true;
     mode = m;
@@ -233,8 +229,7 @@ void Hex_controller::change_mode(Mode m)
 }
 void Hex_controller::change_fill_mode(FillMode new_fill_mode)
 {
-    // mySerial.print("changing fill mode to: ");
-    // mySerial.println(new_fill_mode);
+
     fill_mode = new_fill_mode;
     fill_done = false;
     lastDrew = 0;
@@ -301,9 +296,7 @@ void Hex_controller::update()
 {
     if (millis() > (lastDrew + drawEveryNthMs))
     {
-
-        // mySerial.println("updating now: ");
-        if (rainbow > 0)
+        if (rainbow > 0) //hue changing
         {
             clr_arr[0].setHue(rainbow);
             rainbow++;
@@ -362,7 +355,6 @@ void Hex_controller::update()
         }
         case PresetAnim:
         {
-            // Serial.printf("preset anim %d, anim step%d\n", preset, animation_step);
             if (preset != 0 && fill_done)
             {
                 animation_step++;
@@ -380,8 +372,6 @@ void Hex_controller::update()
             fill_rainbow(tmp, VertCount, step_count);
             for (int i = 0; i <= VertCount; i++)
             {
-
-                // CRGB clr=clr.setHue(((step_count+i)*step)%255);
                 fill_leds_on_Vert_lvl(i + VertMin, tmp[i]);
             }
             step_count = (step_count > 255) ? 0 : step_count + 1;
@@ -393,7 +383,6 @@ void Hex_controller::update()
             fill_rainbow(tmp, HorzCount, step_count);
             for (int i = 0; i < HorzCount; i++)
             {
-                // CRGB clr=clr.setHue(((step_count+i)*step)%255);
                 fill_leds_on_Hor_lvl(i + HorzMin, tmp[i]);
             }
             step_count = (step_count > 255) ? 0 : step_count + 1;
@@ -401,7 +390,6 @@ void Hex_controller::update()
         }
         case AudioBeatReact:
         {
-            // long start = millis();
             float magnitudeBand[FREQ_BAND_COUNT] = {0.0f};
             float magnitudeBandWeightedMax = 0.0f;
 
@@ -415,35 +403,20 @@ void Hex_controller::update()
                 for (int h = 0; h < HIST_NUM_BEAT; h++)
                 {
                     histAVG += beatHist_[idx][h];
-                    // if(i==0){
-                    // Serial.printf("h%d: %f ", i, beatHist_[idx][h]);
-                    // }
                 }
                 histAVG = histAVG / (float)HIST_NUM_BEAT;
 
-                // Serial.printf("now:%f avg:%f\n", beatHist_[idx][hist_ptr], histAVG);
-
                 if (beatHist_[idx][hist_ptr] > histAVG * BeatThresholdMultyplier)
                 {
-                    // Serial.printf("beat detected");
                     beatVisIntensity_[i] = 250;
-                }
-                //
-                else
-                {
-                    if (beatVisIntensity_[i] >= 150)
-                        beatVisIntensity_[i] -= 20;
-                    if (beatVisIntensity_[i] >= 50)
-                        beatVisIntensity_[i] -= 5;
-                    if (beatVisIntensity_[i] >= 20)
-                        beatVisIntensity_[i] -= 1;
+                }else{
+                    if (beatVisIntensity_[i] >= 150) beatVisIntensity_[i] -= 20;
+                    else if (beatVisIntensity_[i] >= 50) beatVisIntensity_[i] -= 5;
+                    else if (beatVisIntensity_[i] >= 20) beatVisIntensity_[i] -= 1;
                 }
                 if (rainbow != 0)
                 {
                     nodes[i]->fill_hex(CHSV((255 / Hex_controller::NumBoxes) * i, 255, beatVisIntensity_[i]), leds);
-                }
-                else
-                {
                 }
             }
 
@@ -451,20 +424,15 @@ void Hex_controller::update()
             if (hist_ptr < 0)
             {
                 hist_ptr = HIST_NUM_BEAT;
-            }
-            // long time = millis() - start;
-            // Serial.printf("time:%lu\n", time);
+            }          
             break;
         }
         case AudioFreqPool:
         {
-            // mySerial.println("Audio freq pool----");
             float magnitudeBand[FREQ_BAND_COUNT] = {0.0f};
             float magnitudeBandWeightedMax = 0.0f;
-            // mySerial.println("Start new audio reading");
 
             newAudioReading(magnitudeBand, &magnitudeBandWeightedMax);
-            // mySerial.println("Audio reading DONE");
 
             int poolsForOneHex = FREQ_BAND_COUNT / Hex_controller::NumBoxes;
             for (int i = 0; i < Hex_controller::NumBoxes; i++)
@@ -491,7 +459,6 @@ void Hex_controller::update()
                 histAvgMag = histAvgMag / ((float)HIST_NUM_FREQ);
                 int histMult = 100 * (bandMagAvg / histAvgMag);
                 uint8_t lightness = min((int)(bandMagAvg * histMult), 255);
-                // nodes[i]->fill_hex(CHSV(20 * i, 255, lightness), leds);
                 uint8_t ledNum = lightness / (255 / 12);
                 nodes[i]
                     ->fill_n_hor_lines(CRGB::Green, CRGB::Red, leds, ledNum);
@@ -527,7 +494,6 @@ void Hex_controller::update()
         }
         if (!fill_done && fill_mode != Not_fill_mode)
         {
-            // Serial.printf("preset anim %d, anim step%d\n", preset, animation_step);
             CRGB tmp = clr_arr[animation_step];
             if (rainbow)
             {

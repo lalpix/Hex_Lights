@@ -11,7 +11,7 @@ static uint16_t *outer_led_adr;
 static int outer_led_num;
 
 static int preset_num = 4;
-
+//----ANIMATION PRESETS
 // top-bottom
 static int preset1[] = {Fill_by_lines_fTop, Fill_by_lines_fBottom};
 // left-right
@@ -30,7 +30,7 @@ private:
     int NumBoxes;
     int TotalLeds;
     uint16_t *outer_led_adr;
-    CRGB clr_arr[4];
+    CRGB clr_arr[4]; //defined colors, first 2 can be changed
     uint8_t maxBrightness, fade;
     int16_t rainbow;
     bool fill_done;
@@ -47,26 +47,26 @@ private:
     uint8_t preset;
     HardwareSerial mySerial;
     CRGB *leds;
-    int **position;                // = {{0, 0}, {1, 1}, {2, 0}, {3, -1}, {3, 1}};
+    int **position;               
     uint8_t *points_of_contact[6]; // nth bit will tell if nth side is in contact
 
 public:
-    Hex_controller(int numBoxes, int **layout) : clr_arr{(CRGB::Red), (CRGB::Lime), (CRGB::Blue), (CRGB::DarkKhaki)},
-                                                 fade(30),
-                                                 rainbow(0),
-                                                 maxBrightness(UINT8_MAX),
-                                                 mode(Stationar),
-                                                 lastDrew(0),
-                                                 fill_done(true),
-                                                 fill_mode(Fill_by_lines_fTop),
-                                                 drawEveryNthMs(100),
-                                                 mySerial(0),
-                                                 NumBoxes(numBoxes),
-                                                 TotalLeds(numBoxes * LEDS_IN_BOX),
-                                                 step(1),
-                                                 step_count(0),
-                                                 position(layout)
-
+    Hex_controller(int numBoxes, int **layout) : 
+        clr_arr{(CRGB::Red), (CRGB::Lime), (CRGB::Blue), (CRGB::DarkKhaki)},
+        fade(30),
+        rainbow(0),
+        maxBrightness(UINT8_MAX),
+        mode(Stationar),
+        lastDrew(0),
+        fill_done(true),
+        fill_mode(Fill_by_lines_fTop),
+        drawEveryNthMs(100),
+        mySerial(0),
+        NumBoxes(numBoxes),
+        TotalLeds(numBoxes * LEDS_IN_BOX),
+        step(1),
+        step_count(0),
+        position(layout)
     {
         leds = (CRGB *)calloc(TotalLeds, sizeof(CRGB));
         outer_led_adr = (uint16_t *)calloc(TotalLeds, sizeof(uint16_t));
@@ -74,10 +74,9 @@ public:
         FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, TotalLeds);
         for (uint8_t i = 0; i < numBoxes; i++)
         {
-            nodes[i] = new Hexnode(i);
-            
+            nodes[i] = new Hexnode(i);   
         }
-        Serial.println("object ready");
+        Serial.println("Controller ready");
     }
     // debug func
     void show()
@@ -86,7 +85,7 @@ public:
     }
     void init(bool firstTime)
     {
-        Serial.println("got into init");
+        Serial.println("Controller init");
         calculate_outer_leds();
         Serial.println("outer leds calc done");
         create_outer_path();

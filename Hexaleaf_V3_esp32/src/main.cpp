@@ -35,10 +35,6 @@ long lastChangeMs = 0;
 bool power = true;
 bool localRun = false;
 
-// TODO  Storing last settings, layout at least
-// Upgrade audio to adjust levels over time
-// SET colors prim and sec
-// min/max speed for each mode,
 WiFiManager wm;
 WiFiClientSecure net = WiFiClientSecure();
 PubSubClient client(net);
@@ -298,6 +294,8 @@ void setup()
     Serial.begin(115200);
     delay(2000); // power-up safety delay
     Serial.println("> Setup....");
+    
+// loading last settings
     String layoutLoad = EEPROM.readString(layoutAddr);
     Serial.println(layoutLoad);
     hexControllerSetupFromText(layoutLoad.c_str(), true);
