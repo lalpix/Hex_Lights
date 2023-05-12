@@ -156,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
               chosen: selectedMode == Mode.RandColorRandHex,
               text: modeName(Mode.RandColorRandHex),
               onTap: () => setState(() {
-                selectedMode = Mode.RandColorRandHex;
+                setState(() => selectedMode = Mode.RandColorRandHex);
                 mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
               }),
             )
@@ -201,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
             chosen: selectedMode == Mode.StationarOuter,
             text: 'Edges only',
             onTap: () => setState(() {
-              selectedMode = Mode.StationarOuter;
+              setState(() => selectedMode = Mode.StationarOuter);
               mqttClient.publishMessage(Topics.mode.name, selectedMode.name);
             }),
           )
