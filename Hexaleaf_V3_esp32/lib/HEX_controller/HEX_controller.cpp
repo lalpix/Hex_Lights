@@ -175,8 +175,13 @@ void Hex_controller::set_speed(uint16_t spd)
 }
 void Hex_controller::set_color(CRGB clr, int idx)
 {
+
     clr_arr[idx] = clr;
     printCRGB(clr_arr[idx]);
+    if (mode == Mode::TwoColorFading)
+    {
+        change_mode(Mode::TwoColorFading);
+    }
 }
 void Hex_controller::set_brightness(uint8_t b)
 {
@@ -296,7 +301,7 @@ void Hex_controller::update()
 {
     if (millis() > (lastDrew + drawEveryNthMs))
     {
-        if (rainbow > 0) //hue changing
+        if (rainbow > 0) // hue changing
         {
             clr_arr[0].setHue(rainbow);
             rainbow++;
@@ -409,10 +414,15 @@ void Hex_controller::update()
                 if (beatHist_[idx][hist_ptr] > histAVG * BeatThresholdMultyplier)
                 {
                     beatVisIntensity_[i] = 250;
-                }else{
-                    if (beatVisIntensity_[i] >= 150) beatVisIntensity_[i] -= 20;
-                    else if (beatVisIntensity_[i] >= 50) beatVisIntensity_[i] -= 5;
-                    else if (beatVisIntensity_[i] >= 20) beatVisIntensity_[i] -= 1;
+                }
+                else
+                {
+                    if (beatVisIntensity_[i] >= 150)
+                        beatVisIntensity_[i] -= 20;
+                    else if (beatVisIntensity_[i] >= 50)
+                        beatVisIntensity_[i] -= 5;
+                    else if (beatVisIntensity_[i] >= 20)
+                        beatVisIntensity_[i] -= 1;
                 }
                 if (rainbow != 0)
                 {
@@ -424,7 +434,7 @@ void Hex_controller::update()
             if (hist_ptr < 0)
             {
                 hist_ptr = HIST_NUM_BEAT;
-            }          
+            }
             break;
         }
         case AudioFreqPool:

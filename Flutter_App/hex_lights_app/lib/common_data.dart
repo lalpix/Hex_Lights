@@ -31,32 +31,32 @@ enum Mode {
 String modeName(Mode m) {
   switch (m) {
     case Mode.Stationar:
-      return 'Bez efektu';
+      return 'No efect';
     case Mode.RotationOuter:
-      return 'Rotující okraje';
+      return 'Rotating border';
     case Mode.StationarOuter:
-      return 'Pouze okraje';
+      return 'Border only';
     case Mode.RandColorRandHex:
-      return 'Náhodné';
+      return 'Random';
     case Mode.RandColorRandHexFade:
-      return 'Náhodné s prolnutím';
+      return 'Random fading';
     case Mode.RainbowSwipeVert:
-      return 'Duha vertikálně';
+      return 'Rainbow vertical';
     case Mode.RainbowSwipeHorz:
-      return 'Duha horizontálně';
+      return 'Rainbow horizontal';
     case Mode.AudioBeatReact:
-      return 'Reakce na beat';
+      return 'Beat reaction';
     case Mode.AudioFreqPool:
-      return 'Reakce na frekvenci';
+      return 'Frequency vizualizer';
     case Mode.TwoColorFading:
-      return 'Prolnutí dvou barev';
+      return 'Two color fade';
     case Mode.TopBottom:
-      return 'Plnění nahoru a dolů';
+      return 'Top down fill';
     case Mode.LeftRight:
-      return 'Plnění zleva a zprava';
+      return 'Left right fill';
     case Mode.MeetInMidle:
-      return 'Souběh uprostřed';
+      return 'Meet in middle fill';
     case Mode.DirectionCircle:
-      return 'Plnění všesměrové';
+      return 'All direction fill';
   }
 }
