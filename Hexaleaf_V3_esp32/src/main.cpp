@@ -42,7 +42,7 @@ PubSubClient client(net);
 void publishMessage(const char *topic, String payload)
 {
     if (client.publish(topic, payload.c_str(), true))
-        Serial.println("Message publised [" + String(topic) + "]: " + payload);
+        Serial.println("Message published [" + String(topic) + "]: " + payload);
 }
 void hexControllerSetup(int numBoxes, int **layout, bool isFirstTime)
 {
