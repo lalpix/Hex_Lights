@@ -3,6 +3,7 @@
 
 #pragma once
 #include <stdlib.h>
+#include <string>
 #include "FastLED.h"
 #include "EEPROM.h"
 #define eepromStateNUM 169

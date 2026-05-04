@@ -1,0 +1,15 @@
+#pragma once
+
+// Copy this file to ha_config.h and fill in your values.
+// ha_config.h is gitignored — this example file is safe to commit.
+
+// IP address of the Raspberry Pi running Home Assistant
+const char* mqtt_server = "192.168.x.x";
+const uint16_t mqtt_port = 1883;
+
+// MQTT credentials (created in HA: Settings → People → Users)
+const char* mqtt_user = "your_mqtt_user";
+const char* mqtt_pass = "your_mqtt_password";
+
+// Unique device ID — change if running multiple Hexaleaf units
+const char* device_id = "hex_lights_01";

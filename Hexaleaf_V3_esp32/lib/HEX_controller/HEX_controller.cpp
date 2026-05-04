@@ -484,7 +484,7 @@ void Hex_controller::update()
                     for (int i = 0; i < 3; i++)
                     {
                         int dif = abs(clr_arr[1][i]) - abs(clr_arr[0][i]);
-                        int dir = rand() % abs(dif);
+                        int dir = (dif != 0) ? rand() % abs(dif) : 0;
                         if (dif < 0)
                         {
                             dir = dir * (-1);
